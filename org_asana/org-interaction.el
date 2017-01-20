@@ -84,7 +84,6 @@ Currently only supports :title and :paragraph."
       (list :id id :title title :paragraph paragraph
             :parent (when parent-id (list :id parent-id))))))
 
-;;;###autoload
 (defun oi-init ()
   "Initialize abstract syntax trees for all the Org Agenda files."
   (let (lst)
@@ -97,7 +96,6 @@ Currently only supports :title and :paragraph."
               lst)))
     (setq *org-ast-list* (nreverse lst))))
 
-;;;###autoload
 (defun oi-insert-child (parent-id position new-headline-plist)
   "Insert under PARENT-ID at POSITION a headline from NEW-HEADLINE-PLIST.
 
@@ -106,12 +104,10 @@ Returns the ID of the new headline."
     (oi-reparent-1 new-hl position parent-id)
     (org-element-property :ID new-hl)))
 
-;;;###autoload
 (defun oi-delete (id)
   "Delete Org headline ID from its associated ast."
   (org-element-extract-element (oi-get-headline-from-id id)))
 
-;;;###autoload
 (defun oi-update (id plist)
   "Update Org headline ID with properties from PLIST."
   (let* ((hl (oi-get-headline-from-id id))
@@ -126,13 +122,11 @@ Returns the ID of the new headline."
          (org-element-map hl 'paragraph #'identity nil t)
          v))))))
 
-;;;###autoload
 (defun oi-move-to (id position parent-id)
   "Reparent Org headline ID to POSITION under PARENT-ID."
   (let ((hl (org-element-extract-element (oi-get-headline-from-id id))))
     (oi-reparent-1 hl position parent-id)))
 
-;;;###autoload
 (defun oi-get-all-headlines ()
   "Print a Python list of dictionaries representing all Org headlines."
   (with-output-to-string
