@@ -30,6 +30,13 @@ class OrgCommand(Command):
     def _run_command(self, command):
         return self._repl.run_command(command)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._run_command('(oi-final)')
+        self._repl.child.sendeof()
+
     def insert_child(self, parent_node, sibling_position, new_child_node):
         plist_string = elisp_string_from_dict(
             {n: getattr(new_child_node, n)
