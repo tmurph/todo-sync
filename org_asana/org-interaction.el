@@ -201,5 +201,15 @@ Returns the ID of the new headline."
                  (length comma-space))  ; trim the leading ", "
             "]")))
 
+(defun oi-final ()
+  "Write all the Org Agenda Files from their abstract syntax trees."
+  (dolist (alst *org-ast-list*)
+    (let ((buf (car alst))
+          (ast (cdr alst)))
+      (with-current-buffer (find-file-noselect (expand-file-name buf))
+        (erase-buffer)
+        (insert (org-element-interpret-data ast))
+        (save-buffer '(16))))))
+
 (provide 'org-interaction)
 ;;; org-interaction.el ends here
