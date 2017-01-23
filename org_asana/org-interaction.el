@@ -9,7 +9,7 @@
 (require 'subr-x)
 
 (defvar *org-ast-list* ()
-  "Alist of (BUF AST) for all Org Agenda buffers.")
+  "Alist of (BUF . AST) for all Org Agenda buffers.")
 
 (defun oi-get-headline-from-id (id syntax-tree-alist)
   "Find the headline associated with ID in SYNTAX-TREE-ALIST."
