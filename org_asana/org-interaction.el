@@ -211,5 +211,22 @@ Returns the ID of the new headline."
         (insert (org-element-interpret-data ast))
         (save-buffer '(16))))))
 
+(defun oi-repl ()
+  "Start up an inferior read-eval-print-loop.
+
+This is for using Emacs in batch mode."
+  (let ((keep-going t)
+        (valid-commands '(oi-init
+                          oi-insert-child oi-delete oi-update oi-move-to
+                          oi-get-all-headlines
+                          oi-final))
+        input command)
+    (while keep-going
+      (setq input (read) command (car-safe input))
+      (cond
+       ((member command valid-commands)
+        (print (eval input)))
+       (t (setq keep-going nil))))))
+
 (provide 'org-interaction)
 ;;; org-interaction.el ends here
