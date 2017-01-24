@@ -11,12 +11,18 @@
 (defvar *org-ast-list* ()
   "Alist of (BUF AST) for all Org Agenda buffers.")
 
-(defun oi-get-headline-from-id (id)
-  "Find the in-memory headline associated with ID."
-  (let ((ast (cdr (assoc (car (org-id-find id)) *org-ast-list*)))
-        (match-fn #'(lambda (hl)
-                      (and (equal id (org-element-property :ID hl)) hl))))
-    (org-element-map ast 'headline match-fn nil t)))
+(defun oi-get-headline-from-id (id syntax-tree-alist)
+  "Find the headline associated with ID in SYNTAX-TREE-ALIST."
+  (let ((match-fn #'(lambda (hl)
+                      (and (equal id (org-element-property :ID hl))
+                           hl)))
+        result)
+    (catch 'found-it
+      (dolist (elt syntax-tree-alist)
+        (when (setq result
+                    (org-element-map (cdr elt) 'headline match-fn nil t))
+          (throw 'found-it result))))
+    result))
 
 (defun oi-make-headline-from-plist (plist)
   "Create a headline from the info in PLIST."
