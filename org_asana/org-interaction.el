@@ -125,9 +125,28 @@ Returns the ID of the new headline."
   (org-element-extract-element
    (oi-get-headline-from-id id *org-ast-list*)))
 
+(defun oi-set-paragraph (hl value)
+  "Set the paragraph contents of HL to VALUE."
+  (org-element-set-contents
+   (org-element-map hl 'paragraph #'identity nil t)
+   value))
+
+(defun oi-set-drawer (hl key value)
+  "In headline HL, set or create a drawer entry like KEY: VALUE."
+  (let* ((key-name (substring (upcase (symbol-name key)) 1))
+         (drawer (org-element-map hl 'property-drawer #'identity nil t))
+         (property (org-element-map drawer 'node-property
+                     #'(lambda (np)
+                         (string= key-name (org-element-property :key np)))
+                     nil t)))
+    (if property
+        (org-element-put-property property key-name value)
+      (org-element-adopt-elements
+       drawer `(node-property (:key ,key-name :value ,value))))))
+
 (defun oi-update (id plist)
   "Update Org headline ID with properties from PLIST."
-  (let* ((hl (oi-get-headline-from-id id))
+  (let* ((hl (oi-get-headline-from-id id *org-ast-list*))
          k v)
     (while plist
       (setq k (pop plist) v (pop plist))
@@ -135,9 +154,8 @@ Returns the ID of the new headline."
        ((eq k :title)
         (org-element-put-property hl k v))
        ((eq k :paragraph)
-        (org-element-set-contents
-         (org-element-map hl 'paragraph #'identity nil t)
-         v))))))
+        (oi-set-paragraph hl v))
+       (t (oi-set-drawer hl k v))))))
 
 (defun oi-move-to (id position parent-id)
   "Reparent Org headline ID to POSITION under PARENT-ID."

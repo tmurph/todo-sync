@@ -113,6 +113,66 @@
     (should (equal (org-element-interpret-data hl)
                    (org-element-interpret-data expected-hl)))))
 
+(ert-deftest oi-update ()
+  "Does `oi-update' update properties correctly?"
+  (let* ((id-to-update "1")
+         (new-plist (list :title "this is the new title"))
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the current headline"
+                   ":PROPERTIES:"
+                   ":ID:       1"
+                   ":END:"))
+         (expected-text (oi-concat-with-newlines
+                         "* TODO this is the new title"
+                         ":PROPERTIES:"
+                         ":ID:       1"
+                         ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (expected-hl (oi-make-headline-from-text expected-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (oi-update id-to-update new-plist)
+    (should (equal (org-element-interpret-data hl)
+                   (org-element-interpret-data expected-hl))))
+  (let* ((id-to-update "1")
+         (new-plist (list :paragraph "this is the new paragraph"))
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the current headline"
+                   ":PROPERTIES:"
+                   ":ID:       1"
+                   ":END:"
+                   "this is the current paragraph"))
+         (expected-text (oi-concat-with-newlines
+                         "* TODO this is the current headline"
+                         ":PROPERTIES:"
+                         ":ID:       1"
+                         ":END:"
+                         "this is the new paragraph"))
+         (hl (oi-make-headline-from-text hl-text))
+         (expected-hl (oi-make-headline-from-text expected-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (oi-update id-to-update new-plist)
+    (should (equal (org-element-interpret-data hl)
+                   (org-element-interpret-data expected-hl))))
+  (let* ((id-to-update "1")
+         (new-plist (list :custom_id "A"))
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the current headline"
+                   ":PROPERTIES:"
+                   ":ID:       1"
+                   ":END:"))
+         (expected-text (oi-concat-with-newlines
+                         "* TODO this is the current headline"
+                         ":PROPERTIES:"
+                         ":ID:       1"
+                         ":CUSTOM_ID: A"
+                         ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (expected-hl (oi-make-headline-from-text expected-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (oi-update id-to-update new-plist)
+    (should (equal (org-element-interpret-data hl)
+                   (org-element-interpret-data expected-hl)))))
+
 
 (provide 'test-org-interaction)
 ;;; test-org-interaction.el ends here
