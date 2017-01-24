@@ -96,6 +96,23 @@
                    (org-element-interpret-data expected-hl)))
     (should (equal retval (plist-get new-hl-plist :id)))))
 
+(ert-deftest oi-delete ()
+  "Does `oi-delete' delete headlines correctly?"
+  (let* ((id-to-delete "1")
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the remaining headline"
+                   "** TODO this is the headline to delete"
+                   ":PROPERTIES:"
+                   ":ID:       1"
+                   ":END:"))
+         (expected-text "* TODO this is the remaining headline")
+         (hl (oi-make-headline-from-text hl-text))
+         (expected-hl (oi-make-headline-from-text expected-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (oi-delete id-to-delete)
+    (should (equal (org-element-interpret-data hl)
+                   (org-element-interpret-data expected-hl)))))
+
 
 (provide 'test-org-interaction)
 ;;; test-org-interaction.el ends here

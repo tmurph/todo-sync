@@ -122,7 +122,8 @@ Returns the ID of the new headline."
 
 (defun oi-delete (id)
   "Delete Org headline ID from its associated ast."
-  (org-element-extract-element (oi-get-headline-from-id id)))
+  (org-element-extract-element
+   (oi-get-headline-from-id id *org-ast-list*)))
 
 (defun oi-update (id plist)
   "Update Org headline ID with properties from PLIST."
