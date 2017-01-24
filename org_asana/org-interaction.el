@@ -115,8 +115,9 @@
   "Insert under PARENT-ID at POSITION a headline from NEW-HEADLINE-PLIST.
 
 Returns the ID of the new headline."
-  (let ((new-hl (oi-make-headline-from-plist new-headline-plist)))
-    (oi-reparent-1 new-hl position parent-id)
+  (let ((parent-hl (oi-get-headline-from-id parent-id *org-ast-list*))
+        (new-hl (oi-make-headline-from-plist new-headline-plist)))
+    (oi-reparent-1 new-hl position parent-hl)
     (org-element-property :ID new-hl)))
 
 (defun oi-delete (id)
