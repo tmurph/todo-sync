@@ -211,5 +211,97 @@
     (should (equal (org-element-interpret-data old-parent-hl)
                    (org-element-interpret-data old-expected-hl)))))
 
+(ert-deftest oi-get-all-headlines ()
+  "Does `oi-get-all-headlines' pull everything correctly?"
+  (let* ((field-list '(:ID))
+         (expected-text "[{'id': None}]")
+         (hl-text "* TODO this is the only headline")
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:id))
+         (expected-text "[{'id': \"A\"}]")
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the only headline"
+                   ":PROPERTIES:"
+                   ":ID:       A"
+                   ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:custom_id))
+         (expected-text "[{'custom_id': \"A\"}]")
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the only headline"
+                   ":PROPERTIES:"
+                   ":CUSTOM_ID: A"
+                   ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:paragraph))
+         (expected-text "[{'paragraph': \"\"}]")
+         (hl-text "* TODO this is the only headline")
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:title))
+         (expected-text "[{'title': \"this is the only headline\"}]")
+         (hl-text "* TODO this is the only headline")
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:id))
+         (expected-text "[{'id': None}, {'id': \"A\"}, {'id': \"B\"}]")
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the root headline"
+                   "** TODO this is the first headline"
+                   ":PROPERTIES:"
+                   ":ID:       A"
+                   ":END:"
+                   "** TODO this is the second headline"
+                   ":PROPERTIES:"
+                   ":ID:       B"
+                   ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:id :parent))
+         (expected-text (concat
+                         "[{'id': \"A\", 'parent': None}, "
+                         "{'id': \"B\", 'parent': \"A\"}]"))
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the parent headline"
+                   ":PROPERTIES:"
+                   ":ID:       A"
+                   ":END:"
+                   "** TODO this is the child headline"
+                   ":PROPERTIES:"
+                   ":ID:       B"
+                   ":END:"))
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text)))
+  (let* ((field-list '(:paragraph))
+         (expected-text (concat
+                         "[{'paragraph': \"A string with a"
+                         "\\n"
+                         "newline in it.\"}]"))
+         (hl-text (oi-concat-with-newlines
+                   "* TODO this is the headline"
+                   "A string with a"
+                   "newline in it."))
+         (hl (oi-make-headline-from-text hl-text))
+         (*org-ast-list* (list (cons "tmp" hl))))
+    (should (equal (oi-get-all-headlines field-list)
+                   expected-text))))
+
 (provide 'test-org-interaction)
 ;;; test-org-interaction.el ends here

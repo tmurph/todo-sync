@@ -58,46 +58,70 @@
 
 (defun oi-python-string-from-plist (plist)
   "Produce a string representation of a Python dict from PLIST."
-  (with-output-to-string
-    (let (comma-needed k v)
-      (princ "{")
-      (while plist
-        (setq k (pop plist) v (pop plist))
-        (when comma-needed (princ ", "))
-        (princ (concat "'"
-                       (substring (downcase (symbol-name k)) 1)
-                       "': "))
-        (cond
-         ((null v)
-          (princ "None"))
-         ((stringp v)
-          (prin1 v))
-         ((listp v)
-          (princ (oi-python-string-from-plist v))))
-        (setq comma-needed t))
-      (princ "}"))))
+  (let ((comma-space ", ")
+        (print-escape-newlines t)
+        k v)
+    (concat
+     "{"
+     (when plist
+       (substring
+        (with-output-to-string
+          (while plist
+            (setq k (pop plist) v (pop plist))
+            (princ comma-space)
+            (princ (concat "'"
+                           (substring (downcase (symbol-name k)) 1)
+                           "': "))
+            (cond
+             ((null v)
+              (princ "None"))
+             ((stringp v)
+              (prin1 v))
+             ((listp v)
+              (princ (oi-python-string-from-plist v))))))
+        (length comma-space)))
+     "}")))
 
-(defun oi-get-all-headlines-1 (hl)
-  "Pull a plist of info on headline HL."
+(defun oi-get-title (hl)
+  "Pull the title, as a string, from headline HL."
+  (string-trim (substring-no-properties
+                (car (org-element-property :title hl)))))
+
+(defun oi-get-paragraph (hl)
+  "Pull the paragraph contents, as a string, from headline HL."
+  (string-trim
+   (substring-no-properties
+    (org-element-interpret-data
+     (org-element-map hl 'paragraph #'identity nil t)))))
+
+(defun oi-get-parent-id (hl)
+  "Pull the parent id (or nil) from headline HL."
+  (let* ((parent (org-element-property :parent hl))
+         (parent-type (car parent))
+         (parent-todo-type (org-element-property :todo-type parent)))
+    (and (eq parent-type 'headline)
+         (eq parent-todo-type 'todo)
+         (org-element-property :ID parent))))
+
+(defun oi-get-value (key hl)
+  "Pull the value associated with KEY from headline HL.
+
+This is a convenience function so I don't have to worry about
+upcase / downcase issues with KEY."
+  (org-element-property (intern (upcase (symbol-name key))) hl))
+
+(defun oi-get-one-headline (fields hl)
+  "Pull a plist of FIELDS info from headline HL."
   (when (eq 'todo (org-element-property :todo-type hl))
-    (let* ((id (org-element-property :ID hl))
-           (title (string-trim
-                   (substring-no-properties
-                    (car (org-element-property :title hl)))))
-           (paragraph (string-trim
-                       (substring-no-properties
-                        (or
-                         (car (org-element-contents
-                               (assq 'paragraph (assq 'section hl))))
-                         ""))))
-           (parent (org-element-property :parent hl))
-           (parent-type (car parent))
-           (parent-todo-type (org-element-property :todo-type parent))
-           (parent-id (and (eq parent-type 'headline)
-                           (eq parent-todo-type 'todo)
-                           (org-element-property :ID parent))))
-      (list :id id :title title :paragraph paragraph
-            :parent (when parent-id (list :id parent-id))))))
+    (let (retval)
+      (dolist (key fields retval)
+        (push key retval)
+        (cond
+         ((eq key :title) (push (oi-get-title hl) retval))
+         ((eq key :paragraph) (push (oi-get-paragraph hl) retval))
+         ((eq key :parent) (push (oi-get-parent-id hl) retval))
+         (t (push (oi-get-value key hl) retval))))
+      (nreverse retval))))
 
 (defun oi-init ()
   "Initialize abstract syntax trees for all the Org Agenda files."
@@ -163,18 +187,19 @@ Returns the ID of the new headline."
         (parent-hl (oi-get-headline-from-id parent-id *org-ast-list*)))
     (oi-reparent-1 (org-element-extract-element hl) position parent-hl)))
 
-(defun oi-get-all-headlines ()
-  "Print a Python list of dictionaries representing all Org headlines."
-  (with-output-to-string
-    (let (comma-needed)
-      (princ "[")
-      (dolist (elt *org-ast-list*)
-        (dolist (plist (org-element-map (cdr elt)
-                           'headline 'oi-get-all-headlines-1))
-          (when comma-needed (princ ", "))
-          (princ (oi-python-string-from-plist plist))
-          (setq comma-needed t)))
-      (princ "]"))))
+(defun oi-get-all-headlines (fields)
+  "Return a string of Org headline FIELDS in Python list-of-dicts format."
+  (let ((fetch-fn #'(lambda (hl) (oi-get-one-headline fields hl)))
+        (comma-space ", "))
+    (concat "[" (substring
+                 (with-output-to-string
+                   (dolist (elt *org-ast-list*)
+                     (dolist (plist (org-element-map (cdr elt)
+                                        'headline fetch-fn))
+                       (princ comma-space)
+                       (princ (oi-python-string-from-plist plist)))))
+                 (length comma-space))  ; trim the leading ", "
+            "]")))
 
 (provide 'org-interaction)
 ;;; org-interaction.el ends here
