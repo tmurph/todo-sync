@@ -65,7 +65,7 @@
         (setq k (pop plist) v (pop plist))
         (when comma-needed (princ ", "))
         (princ (concat "'"
-                       (substring (symbol-name k) 1)
+                       (substring (downcase (symbol-name k)) 1)
                        "': "))
         (cond
          ((null v)
