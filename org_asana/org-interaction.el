@@ -43,15 +43,18 @@
           (org-element-parse-buffer))
         'headline #'identity nil t)))
 
-(defun oi-reparent-1 (hl position parent-id)
-  "Reparent HL to POSITION under headline with id PARENT-ID."
-  (let* ((parent-hl (oi-get-headline-from-id parent-id))
+(defun oi-reparent-1 (child-hl position parent-hl)
+  "Reparent CHILD-HL to POSITION under PARENT-HL."
+  (let* ((parent-level (or (org-element-property :level parent-hl) 0))
+         (child-level (+ parent-level 1))
          (next-sibling (nth position
-                            (org-element-map parent-hl 'headline
-                              #'identity))))
+                            (org-element-map
+                                (org-element-contents parent-hl)
+                                'headline #'identity))))
+    (org-element-put-property child-hl :level child-level)
     (if next-sibling
-        (org-element-insert-before hl next-sibling)
-      (org-element-adopt-elements parent-hl hl))))
+        (org-element-insert-before child-hl next-sibling)
+      (org-element-adopt-elements parent-hl child-hl))))
 
 (defun oi-python-string-from-plist (plist)
   "Produce a string representation of a Python dict from PLIST."
