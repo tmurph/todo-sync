@@ -159,8 +159,9 @@ Returns the ID of the new headline."
 
 (defun oi-move-to (id position parent-id)
   "Reparent Org headline ID to POSITION under PARENT-ID."
-  (let ((hl (org-element-extract-element (oi-get-headline-from-id id))))
-    (oi-reparent-1 hl position parent-id)))
+  (let ((hl (oi-get-headline-from-id id *org-ast-list*))
+        (parent-hl (oi-get-headline-from-id parent-id *org-ast-list*)))
+    (oi-reparent-1 (org-element-extract-element hl) position parent-hl)))
 
 (defun oi-get-all-headlines ()
   "Print a Python list of dictionaries representing all Org headlines."

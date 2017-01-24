@@ -173,6 +173,43 @@
     (should (equal (org-element-interpret-data hl)
                    (org-element-interpret-data expected-hl)))))
 
+(ert-deftest oi-move-to ()
+  "Does `oi-move-to' move headlines correctly?"
+  (let* ((child-id "A")
+         (position 0)
+         (new-parent-id "2")
+         (old-parent-text (oi-concat-with-newlines
+                           "* TODO this is the old parent headline"
+                           "** TODO this is the child headline"
+                           ":PROPERTIES:"
+                           ":ID:       A"
+                           ":END:"))
+         (old-expected-text "* TODO this is the old parent headline")
+         (new-parent-text (oi-concat-with-newlines
+                           "* TODO this is the new parent headline"
+                           ":PROPERTIES:"
+                           ":ID:       2"
+                           ":END:"))
+         (new-expected-text (oi-concat-with-newlines
+                             "* TODO this is the new parent headline"
+                             ":PROPERTIES:"
+                             ":ID:       2"
+                             ":END:"
+                             "** TODO this is the child headline"
+                             ":PROPERTIES:"
+                             ":ID:       A"
+                             ":END:"))
+         (old-parent-hl (oi-make-headline-from-text old-parent-text))
+         (old-expected-hl (oi-make-headline-from-text old-expected-text))
+         (new-parent-hl (oi-make-headline-from-text new-parent-text))
+         (new-expected-hl (oi-make-headline-from-text new-expected-text))
+         (*org-ast-list* (list (cons "old" old-parent-hl)
+                               (cons "new" new-parent-hl))))
+    (oi-move-to child-id position new-parent-id)
+    (should (equal (org-element-interpret-data new-parent-hl)
+                   (org-element-interpret-data new-expected-hl)))
+    (should (equal (org-element-interpret-data old-parent-hl)
+                   (org-element-interpret-data old-expected-hl)))))
 
 (provide 'test-org-interaction)
 ;;; test-org-interaction.el ends here
