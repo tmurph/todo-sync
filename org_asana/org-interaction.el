@@ -19,17 +19,23 @@
     (org-element-map ast 'headline match-fn nil t)))
 
 (defun oi-make-headline-from-plist (plist)
-  "Create a headline from the info in PLIST.
-
-Currently only supports :title and :paragraph."
-  (with-temp-buffer
-    (org-mode)
-    (insert "* TODO ")
-    (insert (plist-get plist :title) "\n")
-    (insert (plist-get plist :paragraph))
-    (org-back-to-heading)
-    (org-id-get-create)
-    (org-element-at-point)))
+  "Create a headline from the info in PLIST."
+  (let ((special-keys '(:title :paragraph :parent))
+        org-mode-hook
+        k v)
+    (org-element-map
+        (with-temp-buffer
+          (org-mode)
+          (insert "* TODO ")
+          (insert (plist-get plist :title) "\n")
+          (insert (or (plist-get plist :paragraph) ""))
+          (goto-char (point-min))
+          (while plist
+            (setq k (pop plist) v (pop plist))
+            (unless (member k special-keys)
+              (org-set-property (substring (upcase (symbol-name k)) 1) v)))
+          (org-element-parse-buffer))
+        'headline #'identity nil t)))
 
 (defun oi-reparent-1 (hl position parent-id)
   "Reparent HL to POSITION under headline with id PARENT-ID."
