@@ -107,6 +107,7 @@ class RootNode(Node):
     EXTRA_ATTRS = ('root')
 
 class Command():
+    DEFAULT_FETCH_FIELDS = tuple()
 
     def insert_child(self, parent_node, sibling_position, new_child_node):
         "Generate an external call to insert a child node."
