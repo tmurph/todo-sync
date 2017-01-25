@@ -104,7 +104,26 @@ class Node():
             return result
 
 class RootNode(Node):
-    EXTRA_ATTRS = ('root')
+    CLASS_EXPORT_ATTRS_TEMPLATE = ('root',)
+
+    def __init__(self):
+        super().__init__()
+        self.id = 'ROOT'
+
+    @classmethod
+    def from_dict_list(cls, node_cls, info_dict_list):
+        n = cls()
+        node_cache = {}
+        for d in info_dict_list:
+            node_cache[d['id']] = node_cls.from_dict(d)
+        for d in info_dict_list:
+            node = node_cache[d['id']]
+            if d.get('parent'):
+                parent_node = node_cache[d['parent']]
+            else:
+                parent_node = n
+            parent_node.append_child(node)
+        return n
 
 class Command():
     DEFAULT_FETCH_FIELDS = tuple()
