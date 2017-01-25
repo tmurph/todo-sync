@@ -55,6 +55,22 @@ class Node():
             setattr(n, k, v)
         return n
 
+    @classmethod
+    def from_dict_list(cls, info_dict_list):
+        node_cache = {}
+        n = cls.from_dict(info_dict_list[0])
+        node_cache[n.id] = n
+        for d in info_dict_list[1:]:
+            node_cache[d['id']] = cls.from_dict(d)
+        for d in info_dict_list[1:]:
+            node = node_cache[d['id']]
+            if d.get('parent'):
+                parent_node = node_cache[d['parent']]
+            else:
+                parent_node = n
+            parent_node.append_child(node)
+        return n
+
     def insert_child(self, sibling_position, child_node):
         self.children.insert(sibling_position, child_node)
         child_node.parent = self
@@ -105,16 +121,3 @@ class Command():
         "Generate an external call to reparent a node."
         raise NotImplementedError
 
-def tree_from_dict_list(node_cls, dict_list):
-    root_node = RootNode()
-    node_cache = {}
-    for d in dict_list:
-        node_cache[d['id']] = node_cls.from_dict(d)
-    for d in dict_list:
-        node = node_cache[d['id']]
-        if d.get('parent'):
-            parent_node = node_cache[d['parent']['id']]
-        else:
-            parent_node = root_node
-        parent_node.append_child(node)
-    return root_node
