@@ -7,20 +7,20 @@ __package__ = "org_asana"
 import collections
 
 class Node():
-    EXTRA_ATTRS = set()
+    CLASS_EXPORT_ATTRS_TEMPLATE = tuple()
 
     def __init__(self):
         self.id = None
-        for a in type(self).EXTRA_ATTRS:
+        self.EXPORT_ATTRS = list(type(self).CLASS_EXPORT_ATTRS_TEMPLATE)
+        for a in self.EXPORT_ATTRS:
             setattr(self, a, None)
         self.in_order = False
         self.children = []
         self.parent = None
 
     def __str__(self):
-        d = {}
-        d['id'] = self.id
-        for a in type(self).EXTRA_ATTRS:
+        d = {'id': self.id, 'parent': self.parent}
+        for a in self.EXPORT_ATTRS:
             d[a] = getattr(self, a, None)
         return str(d)
 
@@ -53,6 +53,8 @@ class Node():
         n = cls()
         for k, v in info_dict.items():
             setattr(n, k, v)
+            if k not in ['id', 'parent']:
+                n.EXPORT_ATTRS.append(k)
         return n
 
     @classmethod
@@ -86,8 +88,9 @@ class Node():
             self.parent.children.remove(self)
 
     def update(self, other_node):
-        for a in type(self).EXTRA_ATTRS:
+        for a in other_node.EXPORT_ATTRS:
             setattr(self, a, getattr(other_node, a, None))
+            self.EXPORT_ATTRS.append(a)
 
     def move_to(self, sibling_position, parent_node):
         parent_node.insert_child(sibling_position, self)

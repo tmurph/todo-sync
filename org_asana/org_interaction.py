@@ -10,7 +10,7 @@ import subprocess
 from org_asana.node import Node, Command
 
 class OrgNode(Node):
-    EXTRA_ATTRS = ('title', 'paragraph')
+    CLASS_EXPORT_ATTRS_TEMPLATE = ('title', 'paragraph')
 
 class OrgCommand(Command):
     def _run(self, command, capture_output=False):
@@ -41,7 +41,7 @@ class OrgCommand(Command):
     def insert_child(self, parent_node, sibling_position, new_child_node):
         plist_string = elisp_string_from_dict(
             {n: getattr(new_child_node, n)
-             for n in new_child_node.EXTRA_ATTRS})
+             for n in new_child_node.EXPORT_ATTRS})
         new_id = self._run(
             '(oi-insert-child "{}" {} \'{})'.format(
                 parent_node.id, sibling_position, plist_string),
@@ -53,7 +53,7 @@ class OrgCommand(Command):
 
     def update(self, node_to_update, model_node):
         plist_string = elisp_string_from_dict(
-            {n: getattr(model_node, n) for n in model_node.EXTRA_ATTRS})
+            {n: getattr(model_node, n) for n in model_node.EXPORT_ATTRS})
         self._run(
             '(oi-update "{}" \'{})'.format(
                 node_to_update.id, plist_string))
