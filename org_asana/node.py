@@ -124,3 +124,18 @@ class Command():
         "Generate an external call to reparent a node."
         raise NotImplementedError
 
+def trees_equal_p(t_left, t_right):
+    result = False
+    keys_equal_p = t_left.__dict__.keys() == t_right.__dict__.keys()
+    if keys_equal_p:
+        values_equal_p = (getattr(t_left, k) == getattr(t_right, k)
+                          for k in t_left.__dict__.keys()
+                          if k not in ['children', 'parent'])
+        children_length_p = len(t_left.children) == len(t_right.children)
+        if all(values_equal_p) and children_length_p:
+            children_equal_p = (trees_equal_p(c_left, c_right)
+                                for c_left, c_right in
+                                zip(t_left.children, t_right.children))
+            if all(children_equal_p):
+                result = True
+    return result
