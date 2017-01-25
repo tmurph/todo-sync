@@ -124,6 +124,10 @@ class Command():
         "Generate an external call to reparent a node."
         raise NotImplementedError
 
+    def get_all_items(self, extra_field_list):
+        "Fetch all items from the source."
+        raise NotImplementedError
+
 def trees_equal_p(t_left, t_right):
     result = False
     keys_equal_p = t_left.__dict__.keys() == t_right.__dict__.keys()
