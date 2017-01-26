@@ -12,6 +12,7 @@ class AsanaNode(Node):
     CLASS_EXPORT_ATTRS_TEMPLATE = ('name', 'notes')
 
 class AsanaCommand(Command):
+    DEFAULT_FETCH_FIELDS = ('id', 'name', 'notes', 'parent')
 
     def __init__(self, asana_tasks, default_workspace_id):
         self._tasks = asana_tasks
@@ -49,12 +50,15 @@ class AsanaCommand(Command):
         self._tasks.set_parent(
             child_node.id, params={'parent': parent_node.id})
 
-    def get_all_tasks(self, with_fields=None):
-        field_list = with_fields or ["id", "name", "notes", "parent"]
+    def get_all_items(self, extra_field_list=None):
+        field_list = self.DEFAULT_FETCH_FIELDS
+        if extra_field_list:
+            field_list = field_list + tuple(extra_field_list)
         result, stack = [], []
-        task_list = list(self._tasks.find_all(
+        all_tasks = list(self._tasks.find_all(
             params={'assignee': 'me', 'workspace': self._w_id},
             fields=field_list))
+        task_list = [t for t in all_tasks if not t.get('parent')]
         task_list.reverse()
         stack.extend(task_list)
         if stack:
@@ -62,6 +66,14 @@ class AsanaCommand(Command):
         else:
             task = None
         while task:
+            parent_dict = task.pop('parent')
+            if parent_dict:
+                task['parent'] = parent_dict['id']
+            else:
+                task['parent'] = None
+            for k, v in task.items():
+                if v:
+                    task[k] = str(v)
             result.append(task)
             task_list = list(self._tasks.subtasks(
                 task=task['id'],
