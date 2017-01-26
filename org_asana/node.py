@@ -24,25 +24,6 @@ class Node():
             d[a] = getattr(self, a, None)
         return str(d)
 
-    def breadth_first_order(self):
-        result, queue = [], collections.deque()
-        result.append(self)
-        if self.children:
-            node = self.children[0]
-            while node:
-                result.append(node)
-                if node.children:
-                    queue.append(node)
-                node = node.next_sibling()
-                if not node and queue:
-                    node = queue.popleft().children[0]
-        return result
-
-    def post_order(self):
-        lst = self.breadth_first_order()
-        lst.reverse()
-        return lst
-
     @classmethod
     def from_dict(cls, info_dict):
         if not info_dict.get('id'):
@@ -162,4 +143,18 @@ def trees_equal_p(t_left, t_right):
                                 zip(t_left.children, t_right.children))
             if all(children_equal_p):
                 result = True
+    return result
+
+def breadth_first_order(self):
+    result, queue = [], collections.deque()
+    result.append(self)
+    if self.children:
+        node = self.children[0]
+        while node:
+            result.append(node)
+            if node.children:
+                queue.append(node)
+            node = node.next_sibling()
+            if not node and queue:
+                node = queue.popleft().children[0]
     return result
