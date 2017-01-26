@@ -32,7 +32,7 @@ class AsanaCommand(Command):
         else:
             parameters.update({'workspace': self._w_id})
         parameters.update({n: getattr(new_child_node, n)
-                           for n in new_child_node.EXTRA_ATTRS})
+                           for n in new_child_node.EXPORT_ATTRS})
         created_task = self._tasks.create(params=parameters)
         # this side effect is important
         new_child_node.id = created_task['id']
@@ -43,7 +43,7 @@ class AsanaCommand(Command):
     def update(self, node_to_update, model_node):
         self._tasks.update(
             node_to_update.id, params={n: getattr(model_node, n)
-                                       for n in model_node.EXTRA_ATTRS})
+                                       for n in model_node.EXPORT_ATTRS})
 
     def move_to(self, child_node, sibling_position, parent_node):
         self._tasks.set_parent(
