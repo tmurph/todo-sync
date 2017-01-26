@@ -67,22 +67,24 @@ class OrgCommand(Command):
         result = self._run('(oi-get-all-headlines)', capture_output=True)
         return eval(eval(result))
 
+def elisp_string_from_value(value):
+    "Make an Elisp string representation of a Python value."
+    if value:
+        result = '"' + str(value).replace('"', '\\"').replace('\n', '\\n') + '"'
+    else:
+        result = 'nil'
+    return result
+
 def elisp_string_from_dict(d):
-    "Produce a string representation of an Elisp plist from D."
-    buf = io.StringIO()
-    space_needed = False
-    buf.write("(")
-    for k, v in d.items():
-        if space_needed:
-            buf.write(" ")
-        buf.write(":" + str(k) + " ")
-        if not v:
-            buf.write("nil")
-        elif isinstance(v, str):
-            buf.write('"' + v + '"') # ugh, elisp cares about ' vs "
-                                     # ... just pray no " in v
-        elif isinstance(v, dict):
-            buf.write(elisp_string_from_dict(v))
-        space_needed = True
-    buf.write(")")
-    return buf.getvalue()
+    "Make an Elisp plist string representation of a Python dictionary."
+    if d:
+        lst = list(d.items())
+        buf = io.StringIO()
+        k, v = lst[0]
+        buf.write("(:" + str(k).lower() + " ")
+        buf.write(elisp_string_from_value(v))
+        for k, v in lst[1:]:
+            buf.write(" :" + str(k).lower() + " ")
+            buf.write(elisp_string_from_value(v))
+        buf.write(")")
+        return buf.getvalue()
