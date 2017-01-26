@@ -30,7 +30,7 @@ class AsanaCommand(Command):
         if parent_node.id:
             parameters.update({'parent': parent_node.id})
         else:
-            paremeters.update({'workspace': self._w_id})
+            parameters.update({'workspace': self._w_id})
         parameters.update({n: getattr(new_child_node, n)
                            for n in new_child_node.EXTRA_ATTRS})
         created_task = self._tasks.create(params=parameters)
