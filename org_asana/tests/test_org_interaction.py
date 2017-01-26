@@ -116,3 +116,28 @@ def test_org_command_move_to(child, pos, parent, expected, org_command):
     "Does OrgCommand.move_to talk to Emacs correctly?"
     org_command.move_to(child, pos, parent)
     org_command._run.assert_called_with(expected)
+
+@pytest.mark.parametrize("extra_field_list, expected", [
+    (None, '(oi-get-all-headlines \'(:id :title :paragraph :parent))'),
+    (['category'],
+     '(oi-get-all-headlines \'(:id :title :paragraph :parent :category))')
+])
+def test_org_command_get_all_items(extra_field_list, expected,
+                                   org_command):
+    "Does OrgCommand.get_all_items talk to Emacs correctly?"
+    org_command.get_all_items(extra_field_list=extra_field_list)
+    org_command._run.assert_called_with(expected, capture_output=True)
+
+@pytest.mark.parametrize("run_return, expected", [
+    ('"[{}]"', [{}]),
+    ('"[{\'id\': \\"1\\"}]"', [{'id': "1"}]),
+    ('"[{\'paragraph\': \\"A string with a \\\n newline in it.\\"}]"',
+     [{'paragraph': "A string with a \
+ newline in it."}])
+])
+def test_org_command_get_all_items_result(run_return, expected,
+                                          org_command, mocker):
+    "Does OrgCommand.get_all_items listen to Emacs correctly?"
+    mocker.patch.object(org_command, '_run', return_value=run_return)
+    result = org_command.get_all_items()
+    assert result == expected

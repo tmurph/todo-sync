@@ -13,6 +13,8 @@ class OrgNode(Node):
     CLASS_EXPORT_ATTRS_TEMPLATE = ('title', 'paragraph')
 
 class OrgCommand(Command):
+    DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent')
+
     def _run(self, command, capture_output=False):
         cmd = ['emacsclient', '-s', self.servername, '-e']
         cmd.append(command)
@@ -63,8 +65,14 @@ class OrgCommand(Command):
             '(oi-move-to "{}" {} "{}")'.format(
                 child_node.id, sibling_position, parent_node.id))
 
-    def get_all_headlines(self):
-        result = self._run('(oi-get-all-headlines)', capture_output=True)
+    def get_all_items(self, extra_field_list=None):
+        field_list = self.DEFAULT_FETCH_FIELDS
+        if extra_field_list:
+            field_list = field_list + tuple(extra_field_list)
+        result = self._run(
+            '(oi-get-all-headlines \'{})'.format(
+                elisp_string_from_list(field_list)),
+            capture_output=True)
         return eval(eval(result))
 
 def elisp_string_from_value(value):
@@ -86,5 +94,15 @@ def elisp_string_from_dict(d):
         for k, v in lst[1:]:
             buf.write(" :" + str(k).lower() + " ")
             buf.write(elisp_string_from_value(v))
+        buf.write(")")
+        return buf.getvalue()
+
+def elisp_string_from_list(lst):
+    "Make an Elisp keyword list string representation of a Python list."
+    if lst:
+        buf = io.StringIO()
+        buf.write("(:" + str(lst[0]).lower())
+        for k in lst[1:]:
+            buf.write(" :" + str(k).lower())
         buf.write(")")
         return buf.getvalue()
