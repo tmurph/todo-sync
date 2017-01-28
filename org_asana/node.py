@@ -74,6 +74,7 @@ class Node():
             self.EXPORT_ATTRS.append(a)
 
     def move_to(self, sibling_position, parent_node):
+        self.parent.children.remove(self)
         parent_node.insert_child(sibling_position, self)
 
     def next_sibling(self):

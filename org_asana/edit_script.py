@@ -56,8 +56,8 @@ def edit_script(source_tree, target_tree,
     s_from_t, t_from_s = {}, {}
     s_from_t[t_tree] = s_tree
     t_from_s[s_tree] = t_tree
-    s_list = breadth_first_order(s_tree)
-    t_list = breadth_first_order(t_tree)
+    s_list = breadth_first_order(s_tree)[1:]
+    t_list = breadth_first_order(t_tree)[1:]
     for s_node in s_list:
         for t_node in t_list:
             if s_maps_to_t_p(s_node, t_node):
@@ -103,7 +103,7 @@ def edit_script(source_tree, target_tree,
             s_position = s_pos_from_t(t_node)
             s_node = make_s_from_t(t_node)
             edit_sequence.append((s_script_class.insert_child,
-                                  s_parent, s_position, s_node))
+                                  [s_parent, s_position, s_node]))
             s_from_t[t_node] = s_node
             t_from_s[s_node] = t_node
             s_parent.insert_child(s_position, s_node)
@@ -115,7 +115,7 @@ def edit_script(source_tree, target_tree,
             if not s_equals_t_p(s_node, t_node):
                 model_s_node = make_s_from_t(t_node)
                 edit_sequence.append((s_script_class.update,
-                                      s_node, model_s_node))
+                                      [copy.copy(s_node), model_s_node]))
                 s_node.update(model_s_node)
             # move
             elif not mapped_nodes_p(s_parent, t_node.parent):
@@ -123,7 +123,7 @@ def edit_script(source_tree, target_tree,
                 s_parent = s_from_t.get(t_node.parent)
                 s_position = s_pos_from_t(t_node)
                 edit_sequence.append((s_script_class.move_to,
-                                      s_node, s_position, s_parent))
+                                      [s_node, s_position, s_parent]))
                 s_node.move_to(s_position, s_parent)
                 s_node.in_order = True
         # align
@@ -146,8 +146,8 @@ def edit_script(source_tree, target_tree,
             if (t_child not in t_list) or ((s_child, t_child) in s):
                 continue
             s_position = s_pos_from_t(t_child)
-            edit_sequence.append((s_script_class.move_to, s_child,
-                                  s_position, s_node))
+            edit_sequence.append((s_script_class.move_to,
+                                  [s_child, s_position, s_node]))
             s_child.move_to(s_position, s_node)
             s_child.in_order = t_child.in_order = True
 
@@ -156,7 +156,7 @@ def edit_script(source_tree, target_tree,
     s_list.reverse()
     for s_node in s_list:
         if not t_from_s.get(s_node):
-            edit_sequence.append((s_script_class.delete, s_node))
+            edit_sequence.append((s_script_class.delete, [s_node]))
             s_node.delete()
     # results
     return edit_sequence
