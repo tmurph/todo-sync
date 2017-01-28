@@ -26,8 +26,10 @@ class Node():
 
     @classmethod
     def from_dict(cls, info_dict):
-        if not info_dict.get('id'):
-            raise Exception('All Nodes must have an ID.')
+        if not 'id' in info_dict.keys():
+            raise Exception('All Nodes must have an ID.'
+                            '\n\n'
+                            "{'id': None} is reserved for Root nodes.")
         if not 'parent' in info_dict.keys():
             raise Exception('All Nodes must have a "parent" '
                             '({"parent": None} is fine).')
