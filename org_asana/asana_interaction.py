@@ -4,8 +4,6 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.abspath(".."))
 __package__ = "org_asana"
 
-import asana
-
 from org_asana.node import Node
 from org_asana.command import Command
 
@@ -26,6 +24,7 @@ class AsanaCommand(Command):
 
     @classmethod
     def from_access_token(cls, token):
+        import asana
         asana_client = asana.Client.access_token(token)
         w_id = asana_client.users.me()['workspaces'][0]['id']
         c = cls(asana_client.tasks, w_id)
