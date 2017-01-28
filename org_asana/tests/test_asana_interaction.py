@@ -14,24 +14,24 @@ def asana_command():
     return AsanaCommand(asana.resources.tasks(), 'DEFAULT')
 
 @pytest.mark.parametrize("asana_node, expected_node", [
-    (AsanaNode.from_dict({'id': 1, 'parent': None}),
-     Node.from_dict({'id': 1, 'parent': None,
-                     'name': None, 'notes': None}))])
+    (AsanaNode.from_dict({'id': None, 'parent': None}),
+     Node.from_dict({'id': None, 'parent': None,
+                     'name': None, 'notes': None, 'completed': False}))])
 def test_asana_node(asana_node, expected_node):
     "Is an AsanaNode just a Node with extra attributes?"
     assert trees_equal_p(asana_node, expected_node)
 
 @pytest.mark.parametrize("parent, pos, child, expected", [
     (AsanaNode(), 0, AsanaNode(),
-     {'assignee': 'me', 'name': None, 'notes': None,
+     {'assignee': 'me', 'name': None, 'notes': None, 'completed': False,
       'workspace': 'DEFAULT'}),
     (AsanaNode.from_dict({'id': 1, 'parent': None}), 0, AsanaNode(),
-     {'assignee': 'me', 'name': None, 'notes': None,
+     {'assignee': 'me', 'name': None, 'notes': None, 'completed': False,
       'parent': 1}),
     (AsanaNode.from_dict({'id': 1, 'parent': None}),
      0,
-     AsanaNode.from_dict({'id': 2, 'parent': None, 'custom': 'thing'}),
-     {'assignee': 'me', 'name': None, 'notes': None,
+     AsanaNode.from_dict({'id': None, 'parent': None, 'custom': 'thing'}),
+     {'assignee': 'me', 'name': None, 'notes': None, 'completed': False,
       'parent': 1, 'custom': 'thing'})])
 def test_asana_command_insert_child(parent, pos, child, expected,
                                     asana_command):

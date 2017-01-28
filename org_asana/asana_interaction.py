@@ -10,7 +10,11 @@ from org_asana.node import Node
 from org_asana.command import Command
 
 class AsanaNode(Node):
-    CLASS_EXPORT_ATTRS_TEMPLATE = ('name', 'notes')
+    CLASS_EXPORT_ATTRS_TEMPLATE = ('name', 'notes', 'completed')
+
+    def __init__(self):
+        super().__init__()
+        self.completed = False
 
 class AsanaCommand(Command):
     DEFAULT_FETCH_FIELDS = ('id', 'name', 'notes', 'parent')
