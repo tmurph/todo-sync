@@ -90,8 +90,10 @@ def test_asana_command_move_to(child, pos, parent, asana_command):
         child.id, params={'parent': parent.id})
 
 @pytest.mark.parametrize("extra_field_list, expected", [
-    (None, ('id', 'name', 'notes', 'parent')),
-    (['project'], ('id', 'name', 'notes', 'parent', 'project'))])
+    (None, ('id', 'name', 'notes', 'parent',
+            'completed', 'completed_at')),
+    (['project'], ('id', 'name', 'notes', 'parent',
+                   'completed', 'completed_at', 'project'))])
 def test_asana_command_get_all_items(extra_field_list, expected,
                                      asana_command, mocker):
     "Does AsanaCommand.get_all_items talk to Asana correctly?"
@@ -111,9 +113,11 @@ def test_asana_command_get_all_items(extra_field_list, expected,
      [{'id': '1', 'parent': None}]),
     ([{'id': 1, 'parent': None}],
      [[{'id': 2, 'parent': {'id': 1}}], []],
-     [{'id': '1', 'parent': None}, {'id': '2', 'parent': '1'}])
-
-])
+     [{'id': '1', 'parent': None}, {'id': '2', 'parent': '1'}]),
+    ([{'id': 1, 'parent': None, 'completed': True}], [[]],
+     [{'id': '1', 'parent': None, 'completed': True}]),
+    ([{'id': 1, 'parent': None, 'completed': False}], [[]],
+     [{'id': '1', 'parent': None, 'completed': False}])])
 def test_asana_command_get_all_items_result(find_all_return,
                                             subtasks_return_list,
                                             expected,

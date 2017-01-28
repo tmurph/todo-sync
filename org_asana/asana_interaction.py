@@ -17,7 +17,8 @@ class AsanaNode(Node):
         self.completed = False
 
 class AsanaCommand(Command):
-    DEFAULT_FETCH_FIELDS = ('id', 'name', 'notes', 'parent')
+    DEFAULT_FETCH_FIELDS = ('id', 'name', 'notes', 'parent',
+                            'completed', 'completed_at')
 
     def __init__(self, asana_tasks, default_workspace_id):
         self._tasks = asana_tasks
@@ -79,7 +80,9 @@ class AsanaCommand(Command):
             else:
                 task['parent'] = None
             for k, v in task.items():
-                if v:
+                if v is None or v is True or v is False:
+                    continue
+                else:
                     task[k] = str(v)
             result.append(task)
             task_list = list(self._tasks.subtasks(
