@@ -1,7 +1,7 @@
 import pytest
 import pytest_mock
 
-from org_asana.node import Node, RootNode, trees_equal_p
+from org_asana.node import Node, trees_equal_p
 from org_asana.org_interaction import OrgNode, OrgCommand
 
 @pytest.fixture(autouse=True)
@@ -22,17 +22,6 @@ def org_command():
 def test_org_node(org_node, expected_node):
     "Is an OrgNode just a Node with extra attributes?"
     assert trees_equal_p(org_node, expected_node)
-
-@pytest.mark.parametrize("root_node, expected_node", [
-    (RootNode(),
-     Node.from_dict({'id': 'ROOT', 'parent': None, 'root': None})),
-    (RootNode.from_dict_list(Node, [{'id': 1, 'parent': None}]),
-     Node.from_dict_list([{'id': 'ROOT', 'parent': None, 'root': None},
-                          {'id': 1, 'parent': None}]))
-])
-def test_root_node(root_node, expected_node):
-    "Is a RootNode like a Node, but a little different?"
-    assert trees_equal_p(root_node, expected_node)
 
 def test_org_command_init(org_command):
     "Does OrgCommand.__init__ talk to Emacs correctly?"

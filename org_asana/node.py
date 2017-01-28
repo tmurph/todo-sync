@@ -90,10 +90,6 @@ class Node():
 class RootNode(Node):
     CLASS_EXPORT_ATTRS_TEMPLATE = ('root',)
 
-    def __init__(self):
-        super().__init__()
-        self.id = 'ROOT'
-
     @classmethod
     def from_dict_list(cls, node_cls, info_dict_list):
         n = cls()

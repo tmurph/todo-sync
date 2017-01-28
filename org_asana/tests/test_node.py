@@ -1,7 +1,7 @@
 import pytest
 import pytest_mock
 
-from org_asana.node import Node, trees_equal_p
+from org_asana.node import Node, RootNode, trees_equal_p
 
 @pytest.mark.parametrize("parent_node, sib_position, child_node, "
                          "expected_node", [
@@ -92,3 +92,13 @@ def test_node_move_to(node_to_move, sib_position, parent_node,
     "Can a node reparent itself under another node?"
     node_to_move.move_to(sib_position, parent_node)
     assert trees_equal_p(parent_node, expected_node)
+
+@pytest.mark.parametrize("root_node, expected_node", [
+    (RootNode(),
+     Node.from_dict({'id': None, 'parent': None, 'root': None})),
+    (RootNode.from_dict_list(Node, [{'id': 1, 'parent': None}]),
+     Node.from_dict_list([{'id': None, 'parent': None, 'root': None},
+                          {'id': 1, 'parent': None}]))])
+def test_root_node(root_node, expected_node):
+    "Is a RootNode like a Node, but a little different?"
+    assert trees_equal_p(root_node, expected_node)
