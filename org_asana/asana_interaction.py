@@ -43,9 +43,11 @@ class AsanaCommand(Command):
         self._tasks.delete(node_to_delete.id)
 
     def update(self, node_to_update, model_node):
-        self._tasks.update(
-            node_to_update.id, params={n: getattr(model_node, n)
-                                       for n in model_node.EXPORT_ATTRS})
+        parameters = {
+            n: getattr(model_node, n)
+            for n in model_node.EXPORT_ATTRS
+            if getattr(model_node, n) != getattr(node_to_update, n, None)}
+        self._tasks.update(node_to_update.id, params=parameters)
 
     def move_to(self, child_node, sibling_position, parent_node):
         self._tasks.set_parent(

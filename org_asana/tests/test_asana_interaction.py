@@ -58,24 +58,21 @@ def test_asana_command_delete(node_to_delete, asana_command):
     asana_command._tasks.delete.assert_called_with(node_to_delete.id)
 
 @pytest.mark.parametrize("to_update, model, expected", [
-    (AsanaNode(), AsanaNode(),
-     {'name': None, 'notes': None}),
-    (AsanaNode.from_dict({'id': 1, 'parent': None}), AsanaNode(),
-     {'name': None, 'notes': None}),
-    (AsanaNode(), AsanaNode.from_dict({'id': 1, 'parent': None,
+    (AsanaNode(), AsanaNode.from_dict({'id': None, 'parent': None,
                                        'name': "Hello",
                                        'notes': "World"}),
      {'name': "Hello", 'notes': "World"}),
-    (AsanaNode(), AsanaNode.from_dict({'id': 1, 'parent': None,
-                                       'name': "Hello",
-                                       'notes': "World",
+    (AsanaNode(), AsanaNode.from_dict({'id': None, 'parent': None,
+                                       'completed': True}),
+     {'completed': True}),
+    (AsanaNode(), AsanaNode.from_dict({'id': None, 'parent': None,
                                        'custom': "ID"}),
-     {'name': "Hello", 'notes': "World", 'custom': "ID"}),
-    (AsanaNode(), AsanaNode.from_dict({'id': 1, 'parent': None,
+     {'custom': "ID"}),
+    (AsanaNode(), AsanaNode.from_dict({'id': None, 'parent': None,
                                        'notes': "A string with a"
                                        "\n"
                                        "newline in it."}),
-     {'name': None, 'notes': "A string with a\nnewline in it."})])
+     {'notes': "A string with a\nnewline in it."})])
 def test_asana_command_update(to_update, model, expected,
                               asana_command):
     "Does AsanaCommand.update talk to Asana correctly?"
