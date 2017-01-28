@@ -107,29 +107,6 @@ class RootNode(Node):
             parent_node.append_child(node)
         return n
 
-class Command():
-    DEFAULT_FETCH_FIELDS = tuple()
-
-    def insert_child(self, parent_node, sibling_position, new_child_node):
-        "Generate an external call to insert a child node."
-        raise NotImplementedError
-
-    def delete(self, node_to_delete):
-        "Generate an external call to delete a node."
-        raise NotImplementedError
-
-    def update(self, node_to_update, other_node):
-        "Generate an external call to update a node's values."
-        raise NotImplementedError
-
-    def move_to(self, child_node, sibling_position, parent_node):
-        "Generate an external call to reparent a node."
-        raise NotImplementedError
-
-    def get_all_items(self, extra_field_list):
-        "Fetch all items from the source."
-        raise NotImplementedError
-
 def trees_equal_p(t_left, t_right):
     result = False
     keys_equal_p = t_left.__dict__.keys() == t_right.__dict__.keys()

@@ -8,7 +8,8 @@ import io
 import pexpect
 import pexpect.replwrap
 
-from org_asana.node import Node, Command
+from org_asana.node import Node
+from org_asana.command import Command
 
 class OrgNode(Node):
     CLASS_EXPORT_ATTRS_TEMPLATE = ('title', 'paragraph')

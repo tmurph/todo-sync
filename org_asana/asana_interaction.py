@@ -6,7 +6,8 @@ __package__ = "org_asana"
 
 import asana
 
-from org_asana.node import Node, Command
+from org_asana.node import Node
+from org_asana.command import Command
 
 class AsanaNode(Node):
     CLASS_EXPORT_ATTRS_TEMPLATE = ('name', 'notes')
