@@ -20,7 +20,8 @@ class OrgNode(Node):
             self.todo_keyword = "TODO"
 
 class OrgCommand(Command):
-    DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent')
+    DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent',
+                            'todo_keyword', 'closed')
 
     def __init__(self, org_config_filename):
         command = 'emacs'

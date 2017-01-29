@@ -132,10 +132,13 @@ def test_org_command_move_to(child, pos, parent, expected, org_command):
     org_command._repl.run_command.assert_called_with(expected)
 
 @pytest.mark.parametrize("extra_field_list, expected", [
-    (None, '(oi-get-all-headlines \'(:id :title :paragraph :parent))'),
+    (None,
+     '(oi-get-all-headlines'
+     ' \'(:id :title :paragraph :parent :todo-keyword :closed))'),
     (['category'],
-     '(oi-get-all-headlines \'(:id :title :paragraph :parent :category))')
-])
+     '(oi-get-all-headlines'
+     ' \'(:id :title :paragraph :parent :todo-keyword :closed'
+     ' :category))')])
 def test_org_command_get_all_items(extra_field_list, expected,
                                    org_command):
     "Does OrgCommand.get_all_items talk to Emacs correctly?"
