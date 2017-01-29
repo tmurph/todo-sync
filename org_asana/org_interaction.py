@@ -47,9 +47,13 @@ class OrgCommand(Command):
         plist_string = elisp_string_from_dict(
             {n: getattr(new_child_node, n)
              for n in new_child_node.EXPORT_ATTRS})
-        new_id = self._run_command(
-            '(oi-insert-child "{}" {} \'{})'.format(
-                parent_node.id, sibling_position, plist_string))
+        if parent_node.id is None:
+            command = '(oi-insert-child nil {} \'{})'.format(
+                sibling_position, plist_string)
+        else:
+            command = '(oi-insert-child "{}" {} \'{})'.format(
+                parent_node.id, sibling_position, plist_string)
+        new_id = self._run_command(command)
         new_child_node.id = new_id
 
     def delete(self, node_to_delete):
@@ -65,9 +69,13 @@ class OrgCommand(Command):
                 node_to_update.id, plist_string))
 
     def move_to(self, child_node, sibling_position, parent_node):
-        self._run_command(
-            '(oi-move-to "{}" {} "{}")'.format(
-                child_node.id, sibling_position, parent_node.id))
+        if parent_node.id is None:
+            command = '(oi-move-to "{}" {} nil)'.format(
+                child_node.id, sibling_position)
+        else:
+            command = '(oi-move-to "{}" {} "{}")'.format(
+                child_node.id, sibling_position, parent_node.id)
+        self._run_command(command)
 
     def get_all_items(self, extra_field_list=None):
         field_list = self.DEFAULT_FETCH_FIELDS

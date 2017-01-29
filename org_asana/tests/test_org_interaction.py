@@ -36,19 +36,19 @@ def test_org_command_init(org_command):
     (OrgNode(),
      1,
      OrgNode(),
-     '(oi-insert-child "None" 1'
+     '(oi-insert-child nil 1'
      ' \'(:title nil :paragraph nil :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
      OrgNode.from_dict({'id': None, 'parent': None,
                         'title': 'Hello!', 'paragraph': 'World!'}),
-     '(oi-insert-child "None" 0'
+     '(oi-insert-child nil 0'
      ' \'(:title "Hello!" :paragraph "World!" :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
      OrgNode.from_dict({'id': None, 'parent': None,
                         'paragraph': 'a "quoted" string'}),
-     '(oi-insert-child "None" 0'
+     '(oi-insert-child nil 0'
      ' \'(:title nil :paragraph "a \\"quoted\\" string"'
      ' :todo-keyword "TODO"))'),
     (OrgNode(),
@@ -57,20 +57,20 @@ def test_org_command_init(org_command):
                         'paragraph': 'a string with a'
                         '\n'
                         'newline in it'}),
-     '(oi-insert-child "None" 0'
+     '(oi-insert-child nil 0'
      ' \'(:title nil :paragraph "a string with a\\nnewline in it"'
      ' :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
      OrgNode.from_dict({'id': None, 'parent': None,
                         'todo_keyword': 'DONE'}),
-     '(oi-insert-child "None" 0'
+     '(oi-insert-child nil 0'
      ' \'(:title nil :paragraph nil :todo-keyword "DONE"))'),
     (OrgNode(),
      0,
      OrgNode.from_dict({'id': None, 'parent': None,
                         'custom_id': 'A'}),
-     '(oi-insert-child "None" 0'
+     '(oi-insert-child nil 0'
      ' \'(:title nil :paragraph nil :todo-keyword "TODO"'
      ' :custom_id "A"))')])
 def test_org_command_insert_child(parent, pos, child, expected,
@@ -121,9 +121,9 @@ def test_org_command_update(to_update, model, expected, org_command):
 
 @pytest.mark.parametrize("child, pos, parent, expected", [
     (OrgNode.from_dict({'id': '1', 'parent': None}), 0, OrgNode(),
-     '(oi-move-to "1" 0 "None")'),
+     '(oi-move-to "1" 0 nil)'),
     (OrgNode(), 1, OrgNode(),
-     '(oi-move-to "None" 1 "None")'),
+     '(oi-move-to "None" 1 nil)'),
     (OrgNode(), 0, OrgNode.from_dict({'id': '1', 'parent': None}),
      '(oi-move-to "None" 0 "1")')])
 def test_org_command_move_to(child, pos, parent, expected, org_command):
