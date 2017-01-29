@@ -22,6 +22,12 @@ class AsanaCommand(Command):
         self._tasks = asana_tasks
         self._w_id = default_workspace_id
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
     @classmethod
     def from_access_token(cls, token):
         import asana
