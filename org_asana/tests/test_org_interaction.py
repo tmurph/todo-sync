@@ -81,8 +81,7 @@ def test_org_command_insert_child(parent, pos, child, expected,
 
 @pytest.mark.parametrize("node_to_delete, expected", [
     (OrgNode(), '(oi-delete "None")'),
-    (OrgNode.from_dict({'id': '1', 'parent': None,}), '(oi-delete "1")')
-])
+    (OrgNode.from_dict({'id': '1', 'parent': None,}), '(oi-delete "1")')])
 def test_org_command_delete(node_to_delete, expected, org_command):
     "Does OrgCommand.delete talk to Emacs correctly?"
     org_command.delete(node_to_delete)
@@ -150,8 +149,7 @@ def test_org_command_get_all_items(extra_field_list, expected,
     ('"[{\'id\': \\"1\\"}]"', [{'id': "1"}]),
     ('"[{\'paragraph\': \\"A string with a \\\n newline in it.\\"}]"',
      [{'paragraph': "A string with a \
- newline in it."}])
-])
+ newline in it."}])])
 def test_org_command_get_all_items_result(repl_return, expected,
                                           org_command, mocker):
     "Does OrgCommand.get_all_items listen to Emacs correctly?"
