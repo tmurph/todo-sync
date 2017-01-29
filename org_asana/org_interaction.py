@@ -51,8 +51,10 @@ class OrgCommand(Command):
         self._run_command('(oi-delete "{}")'.format(node_to_delete.id))
 
     def update(self, node_to_update, model_node):
-        plist_string = elisp_string_from_dict(
-            {n: getattr(model_node, n) for n in model_node.EXPORT_ATTRS})
+        parameters = {
+            n: getattr(model_node, n) for n in model_node.EXPORT_ATTRS
+            if getattr(model_node, n) != getattr(node_to_update, n, None)}
+        plist_string = elisp_string_from_dict(parameters)
         self._run_command(
             '(oi-update "{}" \'{})'.format(
                 node_to_update.id, plist_string))

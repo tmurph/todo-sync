@@ -75,28 +75,31 @@ def test_org_command_delete(node_to_delete, expected, org_command):
     org_command._repl.run_command.assert_called_with(expected)
 
 @pytest.mark.parametrize("to_update, model, expected", [
-    (OrgNode.from_dict({'id': '1', 'parent': None,}),
+    (OrgNode.from_dict({'id': '1', 'parent': None}),
      OrgNode(),
-     '(oi-update "1" \'(:title nil :paragraph nil))'),
+     '(oi-update "1" \'())'),
     (OrgNode(),
-     OrgNode.from_dict({'id': '1', 'parent': None,
+     OrgNode.from_dict({'id': None, 'parent': None,
                         'title': 'Hello!', 'paragraph': 'World!'}),
      '(oi-update "None" \'(:title "Hello!" :paragraph "World!"))'),
     (OrgNode(),
-     OrgNode.from_dict({'id': '1', 'parent': None,
-                        'paragraph': 'a "quoted" string'}),
-     '(oi-update "None" \'(:title nil '
-     ':paragraph "a \\"quoted\\" string"))'),
+     OrgNode.from_dict({'id': None, 'parent': None,
+                        'todo_keyword': 'DONE'}),
+     '(oi-update "None" \'(:todo-keyword "DONE"))'),
     (OrgNode(),
-     OrgNode.from_dict({'id': '1', 'parent': None,
+     OrgNode.from_dict({'id': None, 'parent': None,
+                        'custom_id': 'ID'}),
+     '(oi-update "None" \'(:custom_id "ID"))'),
+    (OrgNode(),
+     OrgNode.from_dict({'id': None, 'parent': None,
+                        'paragraph': 'a "quoted" string'}),
+     '(oi-update "None" \'(:paragraph "a \\"quoted\\" string"))'),
+    (OrgNode(),
+     OrgNode.from_dict({'id': None, 'parent': None,
                         'paragraph': 'a string with a'
                         '\n'
                         'newline in it'}),
-     '(oi-update "None" \'(:title nil '
-     ':paragraph "a string with a'
-     '\\n'
-     'newline in it"))')
-])
+     '(oi-update "None" \'(:paragraph "a string with a\\nnewline in it"))')])
 def test_org_command_update(to_update, model, expected, org_command):
     "Does OrgCommand.update talk to Emacs correctly?"
     org_command.update(to_update, model)
