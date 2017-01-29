@@ -12,7 +12,12 @@ from org_asana.node import Node
 from org_asana.command import Command
 
 class OrgNode(Node):
-    CLASS_EXPORT_ATTRS_TEMPLATE = ('title', 'paragraph')
+    CLASS_EXPORT_ATTRS_TEMPLATE = ('title', 'paragraph', 'todo_keyword')
+
+    def __init__(self):
+        super().__init__()
+        if self.todo_keyword is None:
+            self.todo_keyword = "TODO"
 
 class OrgCommand(Command):
     DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent')

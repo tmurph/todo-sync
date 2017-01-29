@@ -17,8 +17,8 @@ def org_command():
 @pytest.mark.parametrize("org_node, expected_node", [
     (OrgNode.from_dict({'id': 1, 'parent': None}),
      Node.from_dict({'id': 1, 'parent': None,
-                     'title': None, 'paragraph': None}))
-])
+                     'title': None, 'paragraph': None,
+                     'todo_keyword': 'TODO'}))])
 def test_org_node(org_node, expected_node):
     "Is an OrgNode just a Node with extra attributes?"
     assert trees_equal_p(org_node, expected_node)
@@ -31,34 +31,48 @@ def test_org_command_init(org_command):
     (OrgNode.from_dict({'id': '1', 'parent': None}),
      0,
      OrgNode(),
-     '(oi-insert-child "1" 0 \'(:title nil :paragraph nil))'),
+     '(oi-insert-child "1" 0'
+     ' \'(:title nil :paragraph nil :todo-keyword "TODO"))'),
     (OrgNode(),
      1,
      OrgNode(),
-     '(oi-insert-child "None" 1 \'(:title nil :paragraph nil))'),
+     '(oi-insert-child "None" 1'
+     ' \'(:title nil :paragraph nil :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
-     OrgNode.from_dict({'id': '1', 'parent': None,
+     OrgNode.from_dict({'id': None, 'parent': None,
                         'title': 'Hello!', 'paragraph': 'World!'}),
-     '(oi-insert-child "None" 0 '
-     '\'(:title "Hello!" :paragraph "World!"))'),
+     '(oi-insert-child "None" 0'
+     ' \'(:title "Hello!" :paragraph "World!" :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
-     OrgNode.from_dict({'id': '1', 'parent': None,
+     OrgNode.from_dict({'id': None, 'parent': None,
                         'paragraph': 'a "quoted" string'}),
-     '(oi-insert-child "None" 0 \'(:title nil '
-     ':paragraph "a \\"quoted\\" string"))'),
+     '(oi-insert-child "None" 0'
+     ' \'(:title nil :paragraph "a \\"quoted\\" string"'
+     ' :todo-keyword "TODO"))'),
     (OrgNode(),
      0,
-     OrgNode.from_dict({'id': '1', 'parent': None,
+     OrgNode.from_dict({'id': None, 'parent': None,
                         'paragraph': 'a string with a'
                         '\n'
                         'newline in it'}),
-     '(oi-insert-child "None" 0 \'(:title nil '
-     ':paragraph "a string with a'
-     '\\n'
-     'newline in it"))')
-])
+     '(oi-insert-child "None" 0'
+     ' \'(:title nil :paragraph "a string with a\\nnewline in it"'
+     ' :todo-keyword "TODO"))'),
+    (OrgNode(),
+     0,
+     OrgNode.from_dict({'id': None, 'parent': None,
+                        'todo_keyword': 'DONE'}),
+     '(oi-insert-child "None" 0'
+     ' \'(:title nil :paragraph nil :todo-keyword "DONE"))'),
+    (OrgNode(),
+     0,
+     OrgNode.from_dict({'id': None, 'parent': None,
+                        'custom_id': 'A'}),
+     '(oi-insert-child "None" 0'
+     ' \'(:title nil :paragraph nil :todo-keyword "TODO"'
+     ' :custom_id "A"))')])
 def test_org_command_insert_child(parent, pos, child, expected,
         org_command):
     "Does OrgCommand.insert_child talk to Emacs correctly?"
@@ -111,8 +125,7 @@ def test_org_command_update(to_update, model, expected, org_command):
     (OrgNode(), 1, OrgNode(),
      '(oi-move-to "None" 1 "None")'),
     (OrgNode(), 0, OrgNode.from_dict({'id': '1', 'parent': None}),
-     '(oi-move-to "None" 0 "1")')
-])
+     '(oi-move-to "None" 0 "1")')])
 def test_org_command_move_to(child, pos, parent, expected, org_command):
     "Does OrgCommand.move_to talk to Emacs correctly?"
     org_command.move_to(child, pos, parent)
