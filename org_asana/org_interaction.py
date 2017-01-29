@@ -79,26 +79,42 @@ def elisp_string_from_value(value):
         result = 'nil'
     return result
 
+def elisp_string_from_key(key):
+    "Make an Elisp string representation of a Python key."
+    result = str(key).lower()
+    if key in ['todo_keyword']:
+        result = result.replace('_', '-')
+    return result
+
 def elisp_string_from_dict(d):
     "Make an Elisp plist string representation of a Python dictionary."
-    if d:
+    if not d:
+        result = "()"
+    else:
         lst = list(d.items())
         buf = io.StringIO()
         k, v = lst[0]
-        buf.write("(:" + str(k).lower() + " ")
+        buf.write("(:")
+        buf.write(elisp_string_from_key(k))
+        buf.write(" ")
         buf.write(elisp_string_from_value(v))
         for k, v in lst[1:]:
-            buf.write(" :" + str(k).lower() + " ")
+            buf.write(" :")
+            buf.write(elisp_string_from_key(k))
+            buf.write(" ")
             buf.write(elisp_string_from_value(v))
         buf.write(")")
-        return buf.getvalue()
+        result = buf.getvalue()
+    return result
 
 def elisp_string_from_list(lst):
     "Make an Elisp keyword list string representation of a Python list."
     if lst:
         buf = io.StringIO()
-        buf.write("(:" + str(lst[0]).lower())
+        buf.write("(:")
+        buf.write(elisp_string_from_key(lst[0]))
         for k in lst[1:]:
-            buf.write(" :" + str(k).lower())
+            buf.write(" :")
+            buf.write(elisp_string_from_key(k))
         buf.write(")")
         return buf.getvalue()
