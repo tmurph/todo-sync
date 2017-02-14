@@ -8,7 +8,7 @@ def readme():
 
 tools.setup(
     name='todo_sync',
-    version='0.1',
+    version='0.2',
     description='Synchronize todo lists, supports Emacs Org Mode and Asana.',
     long_description=readme(),
     url='https://github.com/tmurph/todo-sync',
