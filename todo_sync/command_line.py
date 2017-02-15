@@ -48,14 +48,8 @@ def main(argv=None):
         with module.ahead_source(
                 args.ahead_config, args.verbose) as a_source:
 
-            edit_sequence = edit_script(
-                b_source.get_tree(), a_source.get_tree(),
-                module.map_fn, module.eql_fn, b_source.make_fn)
-
-            for command, arguments in edit_sequence:
-                skip = args.no_delete and command.__name__ == 'external_delete'
-                if not skip:
-                    command(*arguments)
+            edit_script(b_source.get_tree(), a_source.get_tree(),
+                        module.map_fn, module.eql_fn, b_source.make_fn)
 
     return 0
 

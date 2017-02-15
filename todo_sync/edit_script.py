@@ -84,7 +84,6 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
                     s_from_t.get(target_ordered_nodes[-1]), 'id')
         return result
 
-    edit_sequence = []
     for t_node in helpers.breadth_first_order(t_tree):
         s_node = s_from_t.get(t_node)
         t_parent = t_node.parent
@@ -96,8 +95,7 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
             s_node = make_s_from_t(t_node)
             s_from_t[t_node] = s_node
             t_from_s[s_node] = t_node
-            edit_sequence.append([s_node.external_insert_as_child,
-                                 [s_left_sibling_id, s_parent]])
+            s_node.external_insert_as_child(s_left_sibling_id, s_parent)
             s_node.insert_as_child(s_left_sibling_id, s_parent)
             s_node.in_order = True
         elif t_parent:
@@ -106,16 +104,14 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
             # update
             if not s_equals_t_p(s_node, t_node):
                 model_s_node = make_s_from_t(t_node)
-                edit_sequence.append([copy.copy(s_node).external_update,
-                                     [model_s_node]])
+                s_node.external_update(model_s_node)
                 s_node.update(model_s_node)
             # move
             if not mapped_nodes_p(s_parent, t_node.parent):
                 t_node.in_order = True
                 s_parent = s_from_t.get(t_node.parent)
                 s_left_sibling_id = s_left_sibling_id_from_t(t_node)
-                edit_sequence.append([s_node.external_move_to,
-                                     [s_left_sibling_id, s_parent]])
+                s_node.external_move_to(s_left_sibling_id, s_parent)
                 s_node.move_to(s_left_sibling_id, s_parent)
                 s_node.in_order = True
         # align
@@ -138,8 +134,7 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
             if (t_child not in t_list) or ((s_child, t_child) in s):
                 continue
             s_left_sibling_id = s_left_sibling_id_from_t(t_child)
-            edit_sequence.append([s_child.external_move_to,
-                                 [s_left_sibling_id, s_node]])
+            s_child.external_move_to(s_left_sibling_id, s_node)
             s_child.move_to(s_left_sibling_id, s_node)
             s_child.in_order = t_child.in_order = True
 
@@ -148,8 +143,5 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
     s_list.reverse()
     for s_node in s_list:
         if not t_from_s.get(s_node):
-            edit_sequence.append([s_node.external_delete, []])
+            s_node.external_delete()
             s_node.delete()
-
-    # results
-    return edit_sequence
