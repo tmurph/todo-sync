@@ -33,11 +33,16 @@ def mock_headline_node(info_dict=None):
         mock.Mock())
 
 
-def mock_source(get_all_headlines_return=None):
+def mock_source(get_all_headlines_return=None,
+                get_all_filenames_return=None):
     if get_all_headlines_return is None:
         get_all_headlines_return = []
+    if get_all_filenames_return is None:
+        get_all_filenames_return = []
+    repl_source_side_effect = ['"{}"'.format(get_all_headlines_return),
+                               '"{}"'.format(get_all_filenames_return)]
     return o.Source(
-        mock.Mock(return_value='"{}"'.format(get_all_headlines_return)),
+        mock.Mock(side_effect=repl_source_side_effect),
         mock.Mock(return_value=MOCK_CREATED_HEADLINE_ID),
         mock.Mock(),
         mock.Mock())
@@ -71,59 +76,59 @@ def mock_tree(root_node=None, filename_list=None, headline_list=None):
         (mock_headline_node(),
          None,
          mock_headline_node(),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))'])),
         (mock_headline_node({'id': '1'}),
          None,
          mock_headline_node(),
-         ''.join(['(oi-insert-child "1" nil',
+         ''.join(['(ts-insert-child "1" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))'])),
         (mock_headline_node(),
          "1",
          mock_headline_node(),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" "1"',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" "1"',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))'])),
         (mock_headline_node(),
          None,
          mock_headline_node({'title': 'Hello!', 'paragraph': 'World!'}),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "Hello!"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"',
                   ' :paragraph "World!"))'])),
         (mock_headline_node(),
          None,
          mock_headline_node({'paragraph': 'a "quoted" string'}),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"',
                   ' :paragraph "a \\"quoted\\" string"))'])),
         (mock_headline_node(),
          None,
          mock_headline_node({'paragraph': 'a string with a\nnewline in it'}),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"',
                   ' :paragraph "a string with a\\nnewline in it"))'])),
         (mock_headline_node(),
          None,
          mock_headline_node({'todo_keyword': 'DONE'}),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "DONE"))'])),
         (mock_headline_node(),
          None,
          mock_headline_node({'custom_id': 'A'}),
-         ''.join(['(oi-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"',
                   ' :custom_id "A"))'])),
         (mock_filename_node(),
          None,
          mock_headline_node(),
-         ''.join(['(oi-insert-child-into-file "', MOCK_FILENAME_ID, '"',
+         ''.join(['(ts-insert-child-into-file "', MOCK_FILENAME_ID, '"',
                   ' nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))']))])
@@ -139,11 +144,11 @@ def test_headline_node_insert_as_child(
         (mock_root_node(),
          None,
          mock_filename_node(),
-         ''.join(['(oi-insert-file "', MOCK_FILENAME_ID, '" nil \'())'])),
+         ''.join(['(ts-insert-file "', MOCK_FILENAME_ID, '" nil \'())'])),
         (mock_root_node(),
          "1",
          mock_filename_node({'project_id': 12345}),
-         ''.join(['(oi-insert-file "', MOCK_FILENAME_ID, '" "1"',
+         ''.join(['(ts-insert-file "', MOCK_FILENAME_ID, '" "1"',
                   ' \'(:project_id "12345"))']))])
 def test_filename_node_insert_as_child(
         parent_node, left_sibling_id, child_node, expected):
@@ -164,40 +169,40 @@ def test_headline_node_insert_as_child_result():
 @pytest.mark.parametrize("current_node, new_node, expected", [
     (mock_headline_node({'id': '1'}),
      mock_headline_node(),
-     ''.join(['(oi-update "1" \'())'])),
+     ''.join(['(ts-update "1" \'())'])),
     (mock_headline_node(),
      mock_headline_node({'title': 'Hello!', 'paragraph': 'World!'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:title "Hello!" :paragraph "World!"))'])),
     (mock_headline_node(),
      mock_headline_node({'todo_keyword': 'DONE'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:todo-keyword "DONE"))'])),
     (mock_headline_node(),
      mock_headline_node({'custom_id': 'ID'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:custom_id "ID"))'])),
     (mock_headline_node(),
      mock_headline_node({'paragraph': 'a "quoted" string'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:paragraph "a \\"quoted\\" string"))'])),
     (mock_headline_node(),
      mock_headline_node({'paragraph': 'a string with a\nnewline in it'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:paragraph "a string with a\\nnewline in it"))'])),
     (mock_headline_node({'todo_keyword': 'DONE',
                          'closed': '2017-01-01T10:30:00.000Z'}),
      mock_headline_node({'todo_keyword': 'DONE',
                          'closed': '2017-01-31T18:30:00.000Z',
                          'custom': 'ID'}),
-     ''.join(['(oi-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:custom "ID"))'])),
     (mock_filename_node({'id': 'project.org'}),
      mock_filename_node(),
-     '(oi-update-file "project.org" \'())'),
+     '(ts-update-file "project.org" \'())'),
     (mock_filename_node(),
      mock_filename_node({'project_id': 1234}),
-     ''.join(['(oi-update-file "', MOCK_FILENAME_ID, '"',
+     ''.join(['(ts-update-file "', MOCK_FILENAME_ID, '"',
               ' \'(:project_id "1234"))']))])
 def test_headline_node_update(current_node, new_node, expected):
     "Does HeadlineNode.external_update talk to Emacs correctly?"
@@ -209,17 +214,17 @@ def test_headline_node_update(current_node, new_node, expected):
     (mock_headline_node(),
      None,
      mock_headline_node({'id': '1'}),
-     ''.join(['(oi-move-to "', MOCK_EXTANT_HEADLINE_ID, '" nil "1")'])),
+     ''.join(['(ts-move-to "', MOCK_EXTANT_HEADLINE_ID, '" nil "1")'])),
     (mock_headline_node(),
      "1",
      mock_headline_node(),
-     ''.join(['(oi-move-to "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-move-to "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' "1"',
               ' "', MOCK_EXTANT_HEADLINE_ID, '")'])),
     (mock_headline_node(),
      None,
      mock_filename_node(),
-     ''.join(['(oi-move-to-file "', MOCK_EXTANT_HEADLINE_ID, '"',
+     ''.join(['(ts-move-to-file "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' nil',
               ' "', MOCK_FILENAME_ID, '")']))])
 def test_headline_node_move_to(child_node, pos, parent_node, expected):
@@ -238,8 +243,8 @@ def test_filename_node_move_to():
 
 
 @pytest.mark.parametrize("node_to_delete, expected", [
-    (mock_headline_node({'id': 1}), '(oi-delete "1")'),
-    (mock_filename_node({'id': 'file'}), '(oi-delete-file "file")')])
+    (mock_headline_node({'id': 1}), '(ts-delete "1")'),
+    (mock_filename_node({'id': 'file'}), '(ts-delete-file "file")')])
 def test_headline_node_delete(node_to_delete, expected):
     "Does HeadlineNode.external_delete talk to Emacs correctly?"
     node_to_delete.external_delete()
@@ -270,7 +275,8 @@ def test_source_from_repl(source_class):
     # as a parent.  Can we pull stuff that way?
     (mock_source(
         get_all_headlines_return=[
-            {'id': '1', 'parent_id': None, 'filename': 'inbox'}]),
+            {'id': '1', 'parent_id': None, 'filename': 'inbox'}],
+        get_all_filenames_return=[{'id': 'inbox'}]),
      mock_tree(filename_list=[{'id': 'inbox'}],
                headline_list=[{'id': '1', 'parent_id': 'inbox'}]))])
 def test_source_get_all_items_result(org_source, expected):
@@ -283,6 +289,6 @@ def test_source_context():
     "Does an Org Source, as a context manager, talk to Emacs correctly?"
     org_source = mock_source()
     with org_source:
-        org_source._repl_source_command.assert_called_with('(oi-init)')
-    org_source._repl_source_command.assert_called_with('(oi-final)')
+        org_source._repl_source_command.assert_called_with('(ts-init)')
+    org_source._repl_source_command.assert_called_with('(ts-final)')
     org_source._repl_sendeof.assert_called()
