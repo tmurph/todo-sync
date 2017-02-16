@@ -14,11 +14,11 @@ def make_fn(org_source, a_node):
     if isinstance(a_node, a.TaskNode):
         org_dict['title'] = a_node.name
         org_dict['todo_keyword'] = 'DONE' if a_node.completed else 'TODO'
-        org_dict['closed'] = a_node.completed_at
         org_dict['asana_id'] = str(a_node.id)
-        paragraph_info = getattr(a_node, 'notes', None)
-        if paragraph_info:
-            org_dict['paragraph'] = paragraph_info
+        if getattr(a_node, 'completed_at', None):
+            org_dict['closed'] = a_node.completed_at
+        if getattr(a_node, 'notes', None):
+            org_dict['paragraph'] = a_node.notes
         deadline_info = (getattr(a_node, 'due_at', None)
                          or getattr(a_node, 'due_on', None))
         if deadline_info:
@@ -29,7 +29,7 @@ def make_fn(org_source, a_node):
 
     elif isinstance(a_node, a.ProjectNode):
         org_dict['id'] = a_node.name
-        org_dict['asana_project_id'] = a_node.id
+        org_dict['asana_project_id'] = str(a_node.id)
         o_node = org_source.make_filename_node(org_dict)
 
     return o_node
