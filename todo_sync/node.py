@@ -1,5 +1,4 @@
 class Node():
-    CLASS_EXPORT_ATTRS_TEMPLATE = tuple()
 
     def __init__(self):
         self._id = None
