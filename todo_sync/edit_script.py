@@ -39,7 +39,8 @@ def lcs2(X, Y, equal):
 
 
 def edit_script(s_tree, t_tree,
-                s_maps_to_t_p, s_equals_t_p, make_s_from_t):
+                s_maps_to_t_p, s_equals_t_p, make_s_from_t,
+                no_delete=False):
     """Update S_TREE to match T_TREE.
 
 Implements an algorithm as described in "Change detection in
@@ -139,9 +140,10 @@ H. Garcia-Molina and J. Widom ([CRGMW95])
             s_child.in_order = t_child.in_order = True
 
     # delete
-    s_list = helpers.breadth_first_order(s_tree)
-    s_list.reverse()
-    for s_node in s_list:
-        if not t_from_s.get(s_node):
-            s_node.external_delete()
-            s_node.delete()
+    if not no_delete:
+        s_list = helpers.breadth_first_order(s_tree)
+        s_list.reverse()
+        for s_node in s_list:
+            if not t_from_s.get(s_node):
+                s_node.external_delete()
+                s_node.delete()

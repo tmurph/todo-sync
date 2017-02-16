@@ -49,7 +49,8 @@ def main(argv=None):
                 args.ahead_config, args.verbose) as a_source:
 
             edit_script(b_source.get_tree(), a_source.get_tree(),
-                        module.map_fn, module.eql_fn, b_source.make_fn)
+                        module.map_fn, module.eql_fn, b_source.make_fn,
+                        args.no_delete)
 
     return 0
 
