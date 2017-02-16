@@ -41,6 +41,10 @@ def lcs2(X, Y, equal):
 def edit_script(s_tree, t_tree,
                 s_maps_to_t_p, s_equals_t_p, make_s_from_t):
     """Update S_TREE to match T_TREE.
+
+Implements an algorithm as described in "Change detection in
+hierarchically structured information" by S. Chawathe, A. Rajaraman,
+H. Garcia-Molina and J. Widom ([CRGMW95])
     """
     if not isinstance(s_tree, node.RootNode):
         raise Exception("Source tree is not rooted.")
