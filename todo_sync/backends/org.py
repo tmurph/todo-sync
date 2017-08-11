@@ -131,7 +131,7 @@ class HeadlineNode(node.Node):
         command = parent_node.as_parent_insert_child_command(
             left_sibling_id, plist_string)
         new_id = self._repl_make_headline_command(command)
-        self.id = new_id
+        self.id = eval(new_id)
 
     def external_update(self, other_node):
         parameters = {k: v for k, v in other_node.export_attrs.items()

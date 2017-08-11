@@ -29,7 +29,7 @@ def mock_headline_node(info_dict=None):
         default_dict.update(info_dict)
     return o.HeadlineNode.from_dict(
         default_dict,
-        mock.Mock(return_value=MOCK_CREATED_HEADLINE_ID),
+        mock.Mock(return_value='"{}"'.format(MOCK_CREATED_HEADLINE_ID)),
         mock.Mock())
 
 
@@ -43,7 +43,7 @@ def mock_source(get_all_headlines_return=None,
                                '"{}"'.format(get_all_filenames_return)]
     return o.Source(
         mock.Mock(side_effect=repl_source_side_effect),
-        mock.Mock(return_value=MOCK_CREATED_HEADLINE_ID),
+        mock.Mock(return_value='"{}"'.format(MOCK_CREATED_HEADLINE_ID)),
         mock.Mock(),
         mock.Mock())
 
