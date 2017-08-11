@@ -70,6 +70,15 @@ def elisp_string_from_id(node_id):
     return result
 
 
+class RootNode(node.RootNode):
+
+    def as_parent_insert_child_command(self, left_sibling_id,
+                                       plist_string):
+        export_left_id = elisp_string_from_id(left_sibling_id)
+        return '(ts-insert-child-into-file nil {} \'{})'.format(
+            export_left_id, plist_string)
+
+
 class FilenameNode(node.Node):
 
     def __init__(self, repl_to_source_command):
@@ -188,6 +197,9 @@ class Source(source.Source):
                 emacs_repl.run_command,
                 emacs_repl.child.sendeof)
         return c
+
+    def make_root_node(self):
+        return RootNode()
 
     def make_headline_node(self, info_dict):
         return HeadlineNode.from_dict(

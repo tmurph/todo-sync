@@ -282,8 +282,16 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
                                    "* TODO this is the new headline"
                                    ":PROPERTIES:"
                                    ":ID:       A"
-                                   ":END:"
-                                   ))))
+                                   ":END:")))
+     (nil nil (list :title "this is the new headline" :id "A")
+          (list (ts-make-ast-from-text "first" "")
+                (ts-make-ast-from-text "second" ""))
+          (list (ts-make-ast-from-text "first"
+                                       "* TODO this is the new headline"
+                                       ":PROPERTIES:"
+                                       ":ID:       A"
+                                       ":END:")
+                (ts-make-ast-from-text "second" ""))))
   (let ((*org-ast-list* ast-data)
         retval)
     (setq retval (ts-insert-child-into-file filename left-sibling-id

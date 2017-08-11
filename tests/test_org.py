@@ -1,7 +1,6 @@
 import pytest
 import unittest.mock as mock
 
-import todo_sync.node as node
 import todo_sync.backends.org as o
 
 from .helpers import assert_trees_equal_p
@@ -13,7 +12,7 @@ MOCK_FILENAME_ID = 'FILENAME'
 
 
 def mock_root_node():
-    return node.RootNode()
+    return o.RootNode()
 
 
 def mock_filename_node(info_dict=None):
@@ -130,6 +129,12 @@ def mock_tree(root_node=None, filename_list=None, headline_list=None):
          mock_headline_node(),
          ''.join(['(ts-insert-child-into-file "', MOCK_FILENAME_ID, '"',
                   ' nil',
+                  ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
+                  ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))'])),
+        (mock_root_node(),
+         None,
+         mock_headline_node(),
+         ''.join(['(ts-insert-child-into-file nil nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-keyword "', o.DEFAULT_TODO_KEYWORD, '"))']))])
 def test_headline_node_insert_as_child(

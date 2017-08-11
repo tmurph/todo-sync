@@ -52,10 +52,12 @@ This is mainly a convenience function."
 
 (defun ts-get-data-from-filename (filename syntax-tree-alist)
   "Find the file data associated with FILENAME in SYNTAX-TREE-ALIST."
-  (or (cdr (assoc filename syntax-tree-alist))
-      (cdr (assoc (concat (expand-file-name filename org-directory)
-                          ".org")
-                  syntax-tree-alist))))
+  (if (null filename)
+      (cdar syntax-tree-alist)
+    (or (cdr (assoc filename syntax-tree-alist))
+        (cdr (assoc (concat (expand-file-name filename org-directory)
+                            ".org")
+                    syntax-tree-alist)))))
 
 (defun ts-make-headline-from-plist (plist)
   "Create a headline from the info in PLIST."
