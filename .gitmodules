@@ -1,0 +1,3 @@
+[submodule "emacs/org-mode"]
+	path = emacs/org-mode
+	url = https://code.orgmode.org/bzg/org-mode.git

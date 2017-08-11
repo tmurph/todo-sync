@@ -2,7 +2,7 @@ all: test
 
 test:
 	emacs -batch -L . \
--l ~/.emacs.d/ts-org-config.el \
+-L org-mode \
 -l test-ts-org-interaction.el \
 -f ert-run-tests-batch-and-exit
 
