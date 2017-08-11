@@ -154,7 +154,7 @@ def test_filename_node_insert_as_child(
         parent_node, left_sibling_id, child_node, expected):
     "Does FilenameNode.external_insert_as_child talk to Emacs correctly?"
     child_node.external_insert_as_child(left_sibling_id, parent_node)
-    child_node._repl_run_command.assert_called_with(expected)
+    child_node._repl_to_source_command.assert_called_with(expected)
 
 
 def test_headline_node_insert_as_child_result():
@@ -169,7 +169,7 @@ def test_headline_node_insert_as_child_result():
 @pytest.mark.parametrize("current_node, new_node, expected", [
     (mock_headline_node({'id': '1'}),
      mock_headline_node(),
-     ''.join(['(ts-update "1" \'())'])),
+     '(ts-update "1" \'())'),
     (mock_headline_node(),
      mock_headline_node({'title': 'Hello!', 'paragraph': 'World!'}),
      ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
@@ -207,7 +207,7 @@ def test_headline_node_insert_as_child_result():
 def test_headline_node_update(current_node, new_node, expected):
     "Does HeadlineNode.external_update talk to Emacs correctly?"
     current_node.external_update(new_node)
-    current_node._repl_run_command.assert_called_with(expected)
+    current_node._repl_to_source_command.assert_called_with(expected)
 
 
 @pytest.mark.parametrize("child_node, pos, parent_node, expected", [
@@ -230,7 +230,7 @@ def test_headline_node_update(current_node, new_node, expected):
 def test_headline_node_move_to(child_node, pos, parent_node, expected):
     "Does HeadlineNode.external_move_to talk to Emacs correctly?"
     child_node.external_move_to(pos, parent_node)
-    child_node._repl_run_command.assert_called_with(expected)
+    child_node._repl_to_source_command.assert_called_with(expected)
 
 
 def test_filename_node_move_to():
@@ -239,7 +239,7 @@ def test_filename_node_move_to():
     left_sibling_id = "1"
     child_node = mock_filename_node()
     child_node.external_move_to(left_sibling_id, parent_node)
-    child_node._repl_run_command.assert_not_called()
+    child_node._repl_to_source_command.assert_not_called()
 
 
 @pytest.mark.parametrize("node_to_delete, expected", [
@@ -248,7 +248,7 @@ def test_filename_node_move_to():
 def test_headline_node_delete(node_to_delete, expected):
     "Does HeadlineNode.external_delete talk to Emacs correctly?"
     node_to_delete.external_delete()
-    node_to_delete._repl_run_command.assert_called_with(expected)
+    node_to_delete._repl_to_source_command.assert_called_with(expected)
 
 
 @pytest.mark.parametrize("source_class", [o.Source, o.DryRunSource])
@@ -289,6 +289,6 @@ def test_source_context():
     "Does an Org Source, as a context manager, talk to Emacs correctly?"
     org_source = mock_source()
     with org_source:
-        org_source._repl_source_command.assert_called_with('(ts-init)')
-    org_source._repl_source_command.assert_called_with('(ts-final)')
+        org_source._repl_get_source_command.assert_called_with('(ts-init)')
+    org_source._repl_to_source_command.assert_called_with('(ts-final)')
     org_source._repl_sendeof.assert_called()

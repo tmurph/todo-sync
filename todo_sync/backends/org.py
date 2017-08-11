@@ -12,7 +12,8 @@ DEFAULT_TODO_KEYWORD = 'TODO'
 def elisp_string_from_value(value):
     "Make an Elisp string representation of a Python value."
     if value:
-        result = '"' + str(value).replace('"', '\\"').replace('\n', '\\n') + '"'
+        result = str(value).replace('"', '\\"').replace('\n', '\\n')
+        result = '"' + result + '"'
     else:
         result = 'nil'
     return result
@@ -71,9 +72,9 @@ def elisp_string_from_id(node_id):
 
 class FilenameNode(node.Node):
 
-    def __init__(self, repl_run_command):
+    def __init__(self, repl_to_source_command):
         super().__init__()
-        self._repl_run_command = repl_run_command
+        self._repl_to_source_command = repl_to_source_command
 
     def as_parent_insert_child_command(self, left_sibling_id,
                                        plist_string):
@@ -84,14 +85,15 @@ class FilenameNode(node.Node):
     def external_insert_as_child(self, left_sibling_id, parent_node):
         plist_string = elisp_string_from_dict(self.export_attrs)
         export_left_id = elisp_string_from_id(left_sibling_id)
-        self._repl_run_command('(ts-insert-file "{}" {} \'{})'.format(
-            self.id, export_left_id, plist_string))
+        self._repl_to_source_command(
+            '(ts-insert-file "{}" {} \'{})'.format(
+                self.id, export_left_id, plist_string))
 
     def external_update(self, other_node):
         parameters = {k: v for k, v in other_node.export_attrs.items()
                       if getattr(self, k, None) != v}
         plist_string = elisp_string_from_dict(parameters)
-        self._repl_run_command(
+        self._repl_to_source_command(
             '(ts-update-file "{}" \'{})'.format(self.id, plist_string))
 
     def as_parent_move_child_command(self, child_id, left_sibling_id):
@@ -104,15 +106,17 @@ class FilenameNode(node.Node):
         pass        # don't try to reorder files
 
     def external_delete(self):
-        self._repl_run_command('(ts-delete-file "{}")'.format(self.id))
+        self._repl_to_source_command(
+            '(ts-delete-file "{}")'.format(self.id))
 
 
 class HeadlineNode(node.Node):
 
-    def __init__(self, repl_make_headline_command, repl_run_command):
+    def __init__(self, repl_make_headline_command,
+                 repl_to_source_command):
         super().__init__()
         self._repl_make_headline_command = repl_make_headline_command
-        self._repl_run_command = repl_run_command
+        self._repl_to_source_command = repl_to_source_command
         self.title = DEFAULT_HEADLINE_TITLE
         self.todo_keyword = DEFAULT_TODO_KEYWORD
 
@@ -138,7 +142,7 @@ class HeadlineNode(node.Node):
         if all(dont_update_closed_tests):
             parameters.pop('closed')
         plist_string = elisp_string_from_dict(parameters)
-        self._repl_run_command(
+        self._repl_to_source_command(
             '(ts-update "{}" \'{})'.format(self.id, plist_string))
 
     def as_parent_move_child_command(self, child_id, left_sibling_id):
@@ -150,10 +154,10 @@ class HeadlineNode(node.Node):
     def external_move_to(self, left_sibling_id, parent_node):
         command = parent_node.as_parent_move_child_command(
             self.id, left_sibling_id)
-        self._repl_run_command(command)
+        self._repl_to_source_command(command)
 
     def external_delete(self):
-        self._repl_run_command('(ts-delete "{}")'.format(self.id))
+        self._repl_to_source_command('(ts-delete "{}")'.format(self.id))
 
 
 class Source(source.Source):
@@ -161,20 +165,20 @@ class Source(source.Source):
                             'todo_keyword', 'closed', 'deadline',
                             'filename')
 
-    def __init__(self, repl_source_command,
-                 repl_make_headline_command, repl_node_command,
+    def __init__(self, repl_get_source_command,
+                 repl_make_headline_command, repl_to_source_command,
                  repl_sendeof):
-        self._repl_source_command = repl_source_command
+        self._repl_get_source_command = repl_get_source_command
         self._repl_make_headline_command = repl_make_headline_command
-        self._repl_node_command = repl_node_command
+        self._repl_to_source_command = repl_to_source_command
         self._repl_sendeof = repl_sendeof
 
     def __enter__(self):
-        self._repl_source_command('(ts-init)')
+        self._repl_get_source_command('(ts-init)')
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._repl_source_command('(ts-final)')
+        self._repl_to_source_command('(ts-final)')
         self._repl_sendeof()
 
     @classmethod
@@ -189,11 +193,11 @@ class Source(source.Source):
         return HeadlineNode.from_dict(
             info_dict,
             self._repl_make_headline_command,
-            self._repl_node_command)
+            self._repl_to_source_command)
 
     def make_filename_node(self, info_dict):
         return FilenameNode.from_dict(info_dict,
-                                      self._repl_node_command)
+                                      self._repl_to_source_command)
 
     def get_all_items(self, extra_field_list=None):
         field_list = self.DEFAULT_FETCH_FIELDS
@@ -202,7 +206,7 @@ class Source(source.Source):
         node_cache = {}
 
         # first process the headlines
-        all_headlines = self._repl_source_command(
+        all_headlines = self._repl_get_source_command(
             '(ts-get-all-headlines \'{})'.format(
                 elisp_string_from_list(field_list)))
         all_headlines = eval(eval(all_headlines))
@@ -214,7 +218,7 @@ class Source(source.Source):
             node_cache[node.id] = node
 
         # then the filenames
-        all_filenames = self._repl_source_command(
+        all_filenames = self._repl_get_source_command(
             '(ts-get-all-filenames \'{})'.format(
                 elisp_string_from_list(field_list)))
         all_filenames = eval(eval(all_filenames))
