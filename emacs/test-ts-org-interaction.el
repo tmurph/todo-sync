@@ -937,43 +937,43 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
     (should (equal (ts-get-all-headlines field-list) expected-text))))
 
 (ts-deftest-parametrize ts-get-all-headlines-filename
-                        (ast-list expected-text)
-                        (((list (ts-make-ast-from-text "tmp"
-                                                       "* TODO just some dummy text"))
-                          "[{'filename': \"tmp\"}]")
-                         ((list (ts-make-ast-from-text "~/directories/filename.ext"
-                                                       "* TODO just some dummy text"))
-                          "[{'filename': \"~/directories/filename.ext\"}]")
-                         ((list (ts-make-ast-from-text "first"
-                                                       "* TODO first parent"
-                                                       "** TODO child")
-                                (ts-make-ast-from-text "second"
-                                                       "* TODO second parent"))
-                          (concat
-                           "[{'filename': \"first\"},"
-                           " {'filename': \"first\"},"
-                           " {'filename': \"second\"}]")))
-                        (let ((*org-ast-list* ast-list))
-                          (should (equal (ts-get-all-headlines '(:filename)) expected-text))))
+    (ast-list expected-text)
+    (((list (ts-make-ast-from-text "tmp"
+                                   "* TODO just some dummy text"))
+      "[{'filename': \"tmp\"}]")
+     ((list (ts-make-ast-from-text "~/directories/filename.ext"
+                                   "* TODO just some dummy text"))
+      "[{'filename': \"~/directories/filename.ext\"}]")
+     ((list (ts-make-ast-from-text "first"
+                                   "* TODO first parent"
+                                   "** TODO child")
+            (ts-make-ast-from-text "second"
+                                   "* TODO second parent"))
+      (concat
+       "[{'filename': \"first\"},"
+       " {'filename': \"first\"},"
+       " {'filename': \"second\"}]")))
+  (let ((*org-ast-list* ast-list))
+    (should (equal (ts-get-all-headlines '(:filename)) expected-text))))
 
 (ts-deftest-parametrize ts-get-all-filenames
-                        (field-list ast-list expected-text)
-                        ((nil
-                          (list (ts-make-ast-from-text "test"
-                                                       "* TODO a test headline")
-                                (ts-make-ast-from-text "~/directory/file.ext"
-                                                       "* TODO another headline"))
-                          "[{'id': \"test\"}, {'id': \"~/directory/file.ext\"}]")
-                         ((list :custom_id)
-                          (list (ts-make-ast-from-text "test"
-                                                       "#+CUSTOM_ID: value"
-                                                       "* TODO a headline also with the id"
-                                                       ":PROPERTIES:"
-                                                       ":CUSTOM_ID: A"
-                                                       ":END:"))
-                          "[{'id': \"test\", 'custom_id': \"value\"}]"))
-                        (let ((*org-ast-list* ast-list))
-                          (should (equal (ts-get-all-filenames field-list) expected-text))))
+    (field-list ast-list expected-text)
+    ((nil
+      (list (ts-make-ast-from-text "test"
+                                   "* TODO a test headline")
+            (ts-make-ast-from-text "~/directory/file.ext"
+                                   "* TODO another headline"))
+      "[{'id': \"test\"}, {'id': \"~/directory/file.ext\"}]")
+     ((list :custom_id)
+      (list (ts-make-ast-from-text "test"
+                                   "#+CUSTOM_ID: value"
+                                   "* TODO a headline also with the id"
+                                   ":PROPERTIES:"
+                                   ":CUSTOM_ID: A"
+                                   ":END:"))
+      "[{'id': \"test\", 'custom_id': \"value\"}]"))
+  (let ((*org-ast-list* ast-list))
+    (should (equal (ts-get-all-filenames field-list) expected-text))))
 
-(provide 'test-org-interaction)
-;;; test-org-interaction.el ends here
+(provide 'test-ts-org-interaction)
+;;; test-ts-org-interaction.el ends here

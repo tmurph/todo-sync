@@ -384,7 +384,7 @@ Returns the ID of the new headline."
     (org-element-property :ID new-hl)))
 
 (defun ts-insert-child-into-file (filename left-sibling-id new-headline-plist)
-  "Insert a headline at the top level of FILENAME at POSITION from NEW-HEADLINE-PLIST.
+  "Insert a headline at the top level of FILENAME after LEFT-SIBLING-ID from NEW-HEADLINE-PLIST.
 
 Returns the ID of the new headline."
   (let ((parent-data (ts-get-data-from-filename filename *org-ast-list*))
@@ -396,7 +396,9 @@ Returns the ID of the new headline."
     (org-element-property :ID new-hl)))
 
 (defun ts-insert-file (filename _ new-file-plist)
-  "Create a new Org data structure associated with FILENAME from NEW-FILE-PLIST, and insert the new structure into the syntax tree alist."
+  "Create a new Org data structure associated with FILENAME from NEW-FILE-PLIST.
+
+Insert the new structure into the syntax tree alist."
   (let ((file-data (ts-make-data-from-plist new-file-plist)))
     (push (cons (expand-file-name filename org-directory)
                 file-data)
