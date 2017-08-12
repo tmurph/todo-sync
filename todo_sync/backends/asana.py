@@ -56,13 +56,14 @@ class ProjectNode(node.Node):
 class TaskNode(node.Node):
 
     def __init__(self, workspace_id, project_create_in_workspace_fn,
-                 project_update_fn, task_create_fn, task_update_fn,
-                 task_set_parent_fn, task_add_project_fn,
+                 project_update_fn, project_delete_fn, task_create_fn,
+                 task_update_fn, task_set_parent_fn, task_add_project_fn,
                  task_remove_project_fn, task_delete_fn):
         super().__init__()
         self._w_id = workspace_id
         self._project_create_in_workspace = project_create_in_workspace_fn
         self._project_update = project_update_fn
+        self._project_delete = project_delete_fn
         self._task_create = task_create_fn
         self._task_update = task_update_fn
         self._task_set_parent = task_set_parent_fn
@@ -144,6 +145,8 @@ class TaskNode(node.Node):
 
     def external_delete(self):
         self._task_delete(self.id)
+        if self.project_id:
+            self._project_delete(self.project_id)
 
 
 class Source(source.Source):
@@ -209,9 +212,10 @@ class Source(source.Source):
     def make_task_node(self, info_dict=None):
         return TaskNode.from_dict(
             info_dict, self._w_id, self._project_create_in_workspace,
-            self._project_update, self._task_create, self._task_update,
-            self._task_set_parent, self._task_add_project,
-            self._task_remove_project, self._task_delete)
+            self._project_update, self._project_delete, self._task_create,
+            self._task_update, self._task_set_parent,
+            self._task_add_project, self._task_remove_project,
+            self._task_delete)
 
     def get_all_items(self, extra_field_list=None):
         field_list = self.DEFAULT_FETCH_FIELDS

@@ -42,6 +42,7 @@ def mock_task_node(info_dict=None):
         MOCK_WORKSPACE_ID,
         mock.Mock(return_value={'id': MOCK_CREATED_PROJECT_ID}),
         mock.Mock(),
+        mock.Mock(),
         mock.Mock(return_value={'id': MOCK_CREATED_TASK_ID}),
         mock.Mock(),
         mock.Mock(),
@@ -515,6 +516,14 @@ def test_task_node_delete():
     node = mock_task_node({'id': 1})
     node.external_delete()
     node._task_delete.assert_called_with(node.id)
+
+
+def test_projectified_task_node_delete():
+    "Does TaskNode.external_delete talk to Asana correctly?"
+    node = mock_task_node({'id': 1, 'project_id': 1})
+    node.external_delete()
+    node._task_delete.assert_called_with(node.id)
+    node._project_delete.assert_called_with(node.project_id)
 
 
 def test_project_node_delete():
