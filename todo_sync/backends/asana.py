@@ -84,7 +84,8 @@ class TaskNode(node.Node):
     def projectify_task(self):
         "Promote the current task to a new Project"
         new_project = self._project_create_in_workspace(
-            self._w_id, params={'name': self.name})
+            self._w_id, params={'name': self.name,
+                                'archived': self.completed})
         self.project_id = new_project['id']
         # we just promoted a task to a project, so now we have to
         # reparent all the extant subtasks

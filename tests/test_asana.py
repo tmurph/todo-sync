@@ -158,7 +158,8 @@ def test_task_node_insert_as_child_under_task(
     old_parent_node = child_node.parent
     child_node.external_insert_as_child(left_sibling_id, parent_node)
     parent_node._project_create_in_workspace.assert_called_with(
-        MOCK_WORKSPACE_ID, params={'name': parent_node.name})
+        MOCK_WORKSPACE_ID, params={'name': parent_node.name,
+                                   'archived': parent_node.completed})
     assert parent_node.project_id == MOCK_CREATED_PROJECT_ID
     task_reparent_params = {'project': MOCK_CREATED_PROJECT_ID,
                             'insert_after': left_sibling_id}
@@ -380,31 +381,31 @@ def test_project_node_update(current_node, new_node, expected):
         (mock_task_node(),
          None,
          mock_tree(mock_task_node()),
-         {'name': a.DEFAULT_TASK_NAME},
+         {'name': a.DEFAULT_TASK_NAME, 'archived': False},
          {'project': MOCK_CREATED_PROJECT_ID, 'insert_after': None}),
         (mock_task_node(),
          None,
          mock_tree(mock_task_node({'name': 'a project'}),
                    task_list=[{'id': 'A'}]),
-         {'name': 'a project'},
+         {'name': 'a project', 'archived': False},
          {'project': MOCK_CREATED_PROJECT_ID, 'insert_after': None}),
         (mock_task_node(),
          'A',
          mock_tree(mock_task_node(),
                    task_list=[{'id': 'A'}, {'id': 'B'}]),
-         {'name': a.DEFAULT_TASK_NAME},
+         {'name': a.DEFAULT_TASK_NAME, 'archived': False},
          {'project': MOCK_CREATED_PROJECT_ID, 'insert_after': 'A'}),
         (mock_task_node({'name': 'a task', 'custom': 'ID'}),
          None,
          mock_tree(mock_task_node()),
-         {'name': a.DEFAULT_TASK_NAME},
+         {'name': a.DEFAULT_TASK_NAME, 'archived': False},
          {'project': MOCK_CREATED_PROJECT_ID, 'insert_after': None}),
         (lib.breadth_first_order(
             mock_tree(mock_task_node(), task_list=[{'id': 'A'}]))[-1],
          None,
          mock_tree(mock_task_node(),
                    task_list=[{'id': 'B'}, {'id': 'C'}]),
-         {'name': a.DEFAULT_TASK_NAME},
+         {'name': a.DEFAULT_TASK_NAME, 'archived': False},
          {'project': MOCK_CREATED_PROJECT_ID, 'insert_after': None})])
 def test_task_node_move_to_task(
         child_node, left_sibling_id, parent_node, expected_project_create,
