@@ -37,7 +37,7 @@ def prettify_tree(tree, limit_to_attrs):
 
 
 def ppt(tree, limit_to_attrs=None):
-    print(prettify_tree(tree, limit_to_attrs))
+    print(prettify_tree(tree, limit_to_attrs), end="\n\n")
 
 
 def make_wrapped_fn(title, fn):
