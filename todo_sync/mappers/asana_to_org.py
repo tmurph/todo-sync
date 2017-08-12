@@ -41,13 +41,10 @@ def behind_source(access_token, verbose=False, dry_run=False):
 
     if dry_run:
         a.DryRunSource.make_fn = make_fn
-        source = a.DryRunSource.from_client(client)
-    elif verbose:
-        a.VerboseSource.make_fn = make_fn
-        source = a.VerboseSource.from_client(client)
+        source = a.DryRunSource.from_client(client, verbose)
     else:
         a.Source.make_fn = make_fn
-        source = a.Source.from_client(client)
+        source = a.Source.from_client(client, verbose)
     source.get_tree = source.get_all_items
 
     return source
@@ -63,10 +60,7 @@ def ahead_source(org_config_filename, verbose=False):
     emacs_repl_wrapper = pexpect.replwrap.REPLWrapper(
         spawn, "Lisp expression: ", None)
 
-    if verbose:
-        source = o.VerboseSource.from_emacs_repl(emacs_repl_wrapper)
-    else:
-        source = o.Source.from_emacs_repl(emacs_repl_wrapper)
+    source = o.Source.from_emacs_repl(emacs_repl_wrapper, verbose)
     source.get_tree = lambda: source.get_all_items(
         ['asana_id', 'asana_project_id'])
 

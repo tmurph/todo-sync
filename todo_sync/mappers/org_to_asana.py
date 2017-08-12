@@ -47,13 +47,11 @@ def behind_source(org_config_filename, verbose=False, dry_run=False):
 
     if dry_run:
         o.DryRunSource.make_fn = make_fn
-        source = o.DryRunSource.from_emacs_repl(emacs_repl_wrapper)
-    elif verbose:
-        o.VerboseSource.make_fn = make_fn
-        source = o.VerboseSource.from_emacs_repl(emacs_repl_wrapper)
+        source = o.DryRunSource.from_emacs_repl(emacs_repl_wrapper,
+                                                verbose)
     else:
         o.Source.make_fn = make_fn
-        source = o.Source.from_emacs_repl(emacs_repl_wrapper)
+        source = o.Source.from_emacs_repl(emacs_repl_wrapper, verbose)
 
     source.get_tree = lambda: source.get_all_items(
         ['asana_id', 'asana_project_id'])
@@ -64,10 +62,7 @@ def behind_source(org_config_filename, verbose=False, dry_run=False):
 def ahead_source(access_token, verbose=False):
     client = asana.Client.access_token(access_token)
 
-    if verbose:
-        source = a.VerboseSource.from_client(client)
-    else:
-        source = a.Source.from_client(client)
+    source = a.Source.from_client(client, verbose)
     source.get_tree = source.get_all_items
 
     return source

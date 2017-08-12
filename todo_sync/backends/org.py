@@ -176,11 +176,21 @@ class Source(source.Source):
 
     def __init__(self, repl_get_source_command,
                  repl_make_headline_command, repl_to_source_command,
-                 repl_sendeof):
+                 repl_sendeof, verbose=False):
         self._repl_get_source_command = repl_get_source_command
+        if verbose:
+            self._repl_get_source_command = lib.make_wrapped_fn(
+                'Get From Source:', self._repl_get_source_command)
         self._repl_make_headline_command = repl_make_headline_command
+        if verbose:
+            self._repl_make_headline_command = lib.make_wrapped_fn(
+                'Make Headline:', self._repl_make_headline_command)
         self._repl_to_source_command = repl_to_source_command
+        if verbose:
+            self._repl_to_source_command = lib.make_wrapped_fn(
+                'Send To Source:', self._repl_to_source_command)
         self._repl_sendeof = repl_sendeof
+        self._verbose = verbose
 
     def __enter__(self):
         self._repl_get_source_command('(ts-init)')
@@ -191,11 +201,12 @@ class Source(source.Source):
         self._repl_sendeof()
 
     @classmethod
-    def from_emacs_repl(cls, emacs_repl):
+    def from_emacs_repl(cls, emacs_repl, verbose=False):
         c = cls(emacs_repl.run_command,
                 emacs_repl.run_command,
                 emacs_repl.run_command,
-                emacs_repl.child.sendeof)
+                emacs_repl.child.sendeof,
+                verbose)
         return c
 
     def make_root_node(self):
@@ -251,28 +262,19 @@ class Source(source.Source):
                 parent_node = root_node
             parent_node.append_child(node)
 
+        if self._verbose:
+            lib.ppt(root_node)
         return root_node
 
 
 class DryRunSource(Source):
 
     @classmethod
-    def from_emacs_repl(cls, emacs_repl):
+    def from_emacs_repl(cls, emacs_repl, verbose=False):
         c = cls(
-            lib.make_wrapped_fn('Run Command:', emacs_repl.run_command),
-            lib.make_counting_print_fn('Run Command:', 'NEW HEADLINE'),
-            lib.make_print_fn('Run Command:'),
-            emacs_repl.child.sendeof)
-        return c
-
-
-class VerboseSource(Source):
-
-    @classmethod
-    def from_emacs_repl(cls, emacs_repl):
-        c = cls(
-            lib.make_wrapped_fn('Run Command:', emacs_repl.run_command),
-            lib.make_wrapped_fn('Run Command:', emacs_repl.run_command),
-            lib.make_wrapped_fn('Run Command:', emacs_repl.run_command),
-            emacs_repl.child.sendeof)
+            emacs_repl.run_command,
+            lib.make_counting_fn(lambda i: '"NEW HEADLINE"'.format(i)),
+            lib.noop,
+            emacs_repl.child.sendeof,
+            verbose)
         return c

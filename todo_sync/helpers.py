@@ -41,30 +41,26 @@ def ppt(tree, limit_to_attrs=None):
 
 
 def make_wrapped_fn(title, fn):
-    def dry_run_wrapper(*args, **kwargs):
+    def wrapped_fn(*args, **kwargs):
         print(title, *args, *kwargs.items(), sep="\n ", end="\n\n")
         return fn(*args, **kwargs)
-    return dry_run_wrapper
+    return wrapped_fn
 
 
-def make_print_fn(title):
-    def dry_run_fn(*args, **kwargs):
-        print(title, *args, *kwargs.items(), sep="\n  ", end="\n\n")
-    return dry_run_fn
+def noop(*args, **kwargs):
+    pass
 
 
-def make_counting_print_fn(title, retval_prefix='NEW'):
+def make_counting_fn(fn):
     i = 0
 
-    def dry_run_fn(*args, **kwargs):
+    def counting_fn(*args, **kwargs):
         nonlocal i
-        retval = {'id': retval_prefix + " " + str(i)}
-        print('{} {}'.format(title, retval),
-              *args, *kwargs.items(), sep="\n  ", end="\n\n")
+        retval = fn(i)
         i += 1
         return retval
 
-    return dry_run_fn
+    return counting_fn
 
 
 def basename_no_ext(path):

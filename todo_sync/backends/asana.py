@@ -167,24 +167,67 @@ class Source(source.Source):
                  task_set_parent_fn,
                  task_add_project_fn,
                  task_remove_project_fn,
-                 task_delete_fn):
+                 task_delete_fn,
+                 verbose=False):
         self._w_id = default_workspace_id
         self._project_find_by_workspace = project_find_by_workspace_fn
+        if verbose:
+            self._project_find_by_workspace = lib.make_wrapped_fn(
+                'Project Find By Workspace:',
+                self._project_find_by_workspace)
         self._project_tasks = project_tasks_fn
+        if verbose:
+            self._project_tasks = lib.make_wrapped_fn(
+                'Project Tasks:', self._project_tasks)
         self._project_create_in_workspace = project_create_in_workspace_fn
+        if verbose:
+            self._project_create_in_workspace = lib.make_wrapped_fn(
+                'Project Create In Workspace:',
+                self._project_create_in_workspace)
         self._project_update = project_update_fn
+        if verbose:
+            self._project_update = lib.make_wrapped_fn(
+                'Project Update:', self._project_update)
         self._project_delete = project_delete_fn
+        if verbose:
+            self._project_delete = lib.make_wrapped_fn(
+                'Project Delete:', self._project_delete)
         self._task_find_all = task_find_all_fn
+        if verbose:
+            self._task_find_all = lib.make_wrapped_fn(
+                'Task Find All:', self._task_find_all)
         self._task_subtasks = task_subtasks_fn
+        if verbose:
+            self._task_subtasks = lib.make_wrapped_fn(
+                'Task Subtasks:', self._task_subtasks)
         self._task_create = task_create_fn
+        if verbose:
+            self._task_create = lib.make_wrapped_fn(
+                'Task Create:', self._task_create)
         self._task_update = task_update_fn
+        if verbose:
+            self._task_update = lib.make_wrapped_fn(
+                'Task Update:', self._task_update)
         self._task_set_parent = task_set_parent_fn
+        if verbose:
+            self._task_set_parent = lib.make_wrapped_fn(
+                'Task Set Parent:', self._task_set_parent)
         self._task_add_project = task_add_project_fn
+        if verbose:
+            self._task_add_project = lib.make_wrapped_fn(
+                'Task Add Project:', self._task_add_project)
         self._task_remove_project = task_remove_project_fn
+        if verbose:
+            self._task_remove_project = lib.make_wrapped_fn(
+                'Task Remove Project:', self._task_remove_project)
         self._task_delete = task_delete_fn
+        if verbose:
+            self._task_delete = lib.make_wrapped_fn(
+                'Task Delete:', self._task_delete)
+        self._verbose = verbose
 
     @classmethod
-    def from_client(cls, asana_client):
+    def from_client(cls, asana_client, verbose=False):
         c = cls(asana_client.users.me()['workspaces'][0]['id'],
                 asana_client.projects.find_by_workspace,
                 asana_client.projects.tasks,
@@ -198,7 +241,8 @@ class Source(source.Source):
                 asana_client.tasks.set_parent,
                 asana_client.tasks.add_project,
                 asana_client.tasks.remove_project,
-                asana_client.tasks.delete)
+                asana_client.tasks.delete,
+                verbose)
         return c
 
     def make_root_node(self):
@@ -322,63 +366,30 @@ class Source(source.Source):
                 parent_node = root_node
             parent_node.append_child(node)
 
+        if self._verbose:
+            lib.ppt(root_node)
         return root_node
 
 
 class DryRunSource(Source):
 
     @classmethod
-    def from_client(cls, asana_client):
+    def from_client(cls, asana_client, verbose=False):
         c = cls(asana_client.users.me()['workspaces'][0]['id'],
                 asana_client.projects.find_by_workspace,
                 asana_client.projects.tasks,
-                lib.make_counting_print_fn('Project Create in Workspace:',
-                                           'NEW PROJECT'),
-                lib.make_print_fn('Project Update:'),
-                lib.make_print_fn('Project Delete:'),
+                lib.make_counting_fn(lambda i: {
+                    'id': 'NEW PROJECT {}'.format(i)}),
+                lib.noop,
+                lib.noop,
                 asana_client.tasks.find_all,
                 asana_client.tasks.subtasks,
-                lib.make_counting_print_fn('Task Create:', 'NEW TASK'),
-                lib.make_print_fn('Task Update:'),
-                lib.make_print_fn('Task Set Parent:'),
-                lib.make_print_fn('Task Add Project:'),
-                lib.make_print_fn('Task Remove Project:'),
-                lib.make_print_fn('Task Delete:'))
-        return c
-
-
-class VerboseSource(Source):
-
-    @classmethod
-    def from_client(cls, asana_client):
-        c = cls(asana_client.users.me()['workspaces'][0]['id'],
-                lib.make_wrapped_fn(
-                    "Project Find by Workspace:",
-                    asana_client.projects.find_by_workspace),
-                lib.make_wrapped_fn(
-                    "Project Tasks:", asana_client.projects.tasks),
-                lib.make_wrapped_fn(
-                    "Project Create In Workspace:",
-                    asana_client.projects.create_in_workspace),
-                lib.make_wrapped_fn(
-                    "Project Update:", asana_client.projects.update),
-                lib.make_wrapped_fn(
-                    "Project Delete:", asana_client.projects.delete),
-                lib.make_wrapped_fn(
-                    "Task Find All:", asana_client.tasks.find_all),
-                lib.make_wrapped_fn(
-                    "Task Subtasks:", asana_client.tasks.subtasks),
-                lib.make_wrapped_fn(
-                    "Task Create:", asana_client.tasks.create),
-                lib.make_wrapped_fn(
-                    "Task Update:", asana_client.tasks.update),
-                lib.make_wrapped_fn(
-                    "Task Set Parent:", asana_client.tasks.set_parent),
-                lib.make_wrapped_fn(
-                    "Task Add Project:", asana_client.tasks.add_project),
-                lib.make_wrapped_fn(
-                    "Task Remove Project:",
-                    asana_client.tasks.remove_project),
-                lib.make_wrapped_fn(
-                    "Task Delete:", asana_client.tasks.delete))
+                lib.make_counting_fn(lambda i: {
+                    'id': 'NEW TASK {}'.format(i)}),
+                lib.noop,
+                lib.noop,
+                lib.noop,
+                lib.noop,
+                lib.noop,
+                verbose)
         return c
