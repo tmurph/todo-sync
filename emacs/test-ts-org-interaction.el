@@ -211,6 +211,22 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        "DEADLINE: <2017-01-27> CLOSED: [2017-01-22 Sun 14:53]"
        ":PROPERTIES:"
        ":ID:       A"
+       ":END:"))
+     ("1" nil (list :id "A" :title "this task has tags"
+                    :tags '("morning" "@home"))
+      (ts-make-data-from-text
+       "* TODO this is the parent headline"
+       ":PROPERTIES:"
+       ":ID:       1"
+       ":END:")
+      (ts-make-data-from-text
+       "* TODO this is the parent headline"
+       ":PROPERTIES:"
+       ":ID:       1"
+       ":END:"
+       "** TODO this task has tags         :morning:@home:"
+       ":PROPERTIES:"
+       ":ID:       A"
        ":END:")))
   (let* ((*org-ast-list* (list (cons "tmp" buffer-data)))
          retval)
@@ -628,6 +644,28 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       1"
        ":CUSTOM_ID: already_existed"
+       ":END:"))
+     ("1" (list :tags '("morning" "@home"))
+      (ts-make-data-from-text
+       "* TODO a headline"
+       ":PROPERTIES:"
+       ":ID:       1"
+       ":END:")
+      (ts-make-data-from-text
+       "* TODO a headline                   :morning:@home:"
+       ":PROPERTIES:"
+       ":ID:       1"
+       ":END:"))
+     ("1" (list :tags ())
+      (ts-make-data-from-text
+       "* TODO a headline with tags         :@home:"
+       ":PROPERTIES:"
+       ":ID:       1"
+       ":END:")
+      (ts-make-data-from-text
+       "* TODO a headline with tags"
+       ":PROPERTIES:"
+       ":ID:       1"
        ":END:")))
   (let ((*org-ast-list* (list (cons "tmp" buffer-data))))
     (ts-update id-to-update new-plist)
@@ -940,7 +978,21 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        "#+BEGIN_SRC emacs-lisp"
        "  (+ 2 2)"
        "#+END_SRC")
-      "[{'paragraph': \"#+BEGIN_SRC emacs-lisp\\n  (+ 2 2)\\n#+END_SRC\"}]"))
+      "[{'paragraph': \"#+BEGIN_SRC emacs-lisp\\n  (+ 2 2)\\n#+END_SRC\"}]")
+     ('(:tags)
+      (ts-make-data-from-text "* DONE no tags here")
+      "[{'tags': None}]")
+     ('(:tags)
+      (ts-make-data-from-text "* TODO get things done :morning:")
+      "[{'tags': [\"morning\"]}]")
+     ('(:tags)
+      (ts-make-data-from-text "* TODO get more done :morning:@computer:")
+      "[{'tags': [\"morning\", \"@computer\"]}]")
+     ('(:tags)
+      (ts-make-data-from-text
+       "* TODO get this done :morning:"
+       "* TODO get that done :evening:")
+      "[{'tags': [\"morning\"]}, {'tags': [\"evening\"]}]"))
   (let ((*org-ast-list* (list (cons "tmp" buffer-data))))
     (should (equal (ts-get-all-headlines field-list) expected-text))))
 

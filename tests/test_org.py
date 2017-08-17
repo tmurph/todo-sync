@@ -124,6 +124,13 @@ def mock_tree(root_node=None, filename_list=None, headline_list=None):
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-type "', o.DEFAULT_TODO_TYPE, '"',
                   ' :custom_id "A"))'])),
+        (mock_headline_node(),
+         None,
+         mock_headline_node({'tags': set(("morning", ))}),
+         ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
+                  ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
+                  ' :todo-type "', o.DEFAULT_TODO_TYPE, '"',
+                  ' :tags ("morning")))'])),
         (mock_filename_node(),
          None,
          mock_headline_node(),
@@ -202,6 +209,14 @@ def test_headline_node_insert_as_child_result():
                          'custom': 'ID'}),
      ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:custom "ID"))'])),
+    (mock_headline_node(),
+     mock_headline_node({'tags': set(("morning", ))}),
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+              ' \'(:tags ("morning")))'])),
+    (mock_headline_node(),
+     mock_headline_node({'tags': set(("morning", "@home"))}),
+     ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
+              ' \'(:tags ("@home" "morning")))'])),
     (mock_filename_node({'id': 'project.org'}),
      mock_filename_node(),
      '(ts-update-file "project.org" \'())'),
@@ -283,7 +298,18 @@ def test_source_from_repl(source_class):
             {'id': '1', 'parent_id': None, 'filename': 'inbox'}],
         get_all_filenames_return=[{'id': 'inbox'}]),
      mock_tree(filename_list=[{'id': 'inbox'}],
-               headline_list=[{'id': '1', 'parent_id': 'inbox'}]))])
+               headline_list=[{'id': '1', 'parent_id': 'inbox'}])),
+    # Tags come back as a list, but I want them as a set.
+    (mock_source(get_all_headlines_return=[
+        {'id': '1', 'parent_id': None, 'tags': None}]),
+     mock_tree(headline_list=[{'id': '1', 'tags': set()}])),
+    (mock_source(get_all_headlines_return=[
+        {'id': '1', 'parent_id': None, 'tags': ["morning"]}]),
+     mock_tree(headline_list=[{'id': '1', 'tags': set(("morning", ))}])),
+    (mock_source(get_all_headlines_return=[
+        {'id': '1', 'parent_id': None, 'tags': ["morning", "evening"]}]),
+     mock_tree(headline_list=[{'id': '1',
+                               'tags': set(("morning", "evening"))}]))])
 def test_source_get_all_items_result(org_source, expected):
     "Does Source.get_all_items listen to Emacs correctly?"
     result = org_source.get_all_items()

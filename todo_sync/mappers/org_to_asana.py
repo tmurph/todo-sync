@@ -25,6 +25,8 @@ def make_fn(org_source, a_node):
             org_dict['deadline'] = deadline_info
         if getattr(a_node, 'project_id', None):
             org_dict['asana_project_id'] = str(a_node.project_id)
+        if hasattr(a_node, 'tags'):
+            org_dict['tags'] = a_node.tags
         o_node = org_source.make_headline_node(org_dict)
 
     elif isinstance(a_node, a.ProjectNode):
@@ -106,7 +108,9 @@ def eql_fn(o_node, a_node):
                  == lib.safe_int(getattr(o_node, 'asana_project_id', None))),
                 (getattr(o_node, 'deadline', None)
                  == (getattr(a_node, 'due_at', None)
-                     or (getattr(a_node, 'due_on', None))))]
+                     or (getattr(a_node, 'due_on', None)))),
+                (getattr(a_node, 'tags', None)
+                 == (getattr(o_node, 'tags', None)))]
             result = all(tests)
     elif isinstance(o_node, o.FilenameNode):
         if isinstance(a_node, a.ProjectNode):

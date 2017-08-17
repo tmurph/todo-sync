@@ -64,7 +64,7 @@ This is mainly a convenience function."
   (or (plist-get plist :title) (user-error "No title provided in `%s'"
                                            plist))
   (let ((special-keys '(:title :paragraph :parent :todo-type
-                               :closed :deadline))
+                               :closed :deadline :tags))
         text-mode-hook org-mode-hook
         k v)
     (org-element-map
@@ -74,7 +74,12 @@ This is mainly a convenience function."
           ;; we set the todo keyword even though we are given the todo type
           (insert (upcase (or (plist-get plist :todo-type) "TODO")))
           (insert " ")
-          (insert (plist-get plist :title) "\n")
+          (insert (plist-get plist :title))
+          (when (setq v (plist-get plist :tags))
+            (insert " :")
+            (insert (mapconcat #'identity (plist-get plist :tags) ":"))
+            (insert ":"))
+          (insert "\n")
           (insert (or (plist-get plist :paragraph) ""))
           (goto-char (point-min))
           (when (or (plist-get plist :closed) (plist-get plist :deadline))
@@ -134,6 +139,22 @@ This is mainly a convenience function."
       (setq raw-string (replace-match "_" nil nil raw-string)))
     raw-string))
 
+(defun ts-python-string-from-list (lst)
+  "Produce a string representation of a Python list from LST."
+  (let ((comma-space ", ")
+        v)
+    (concat
+     "["
+     (when lst
+       (substring
+        (with-output-to-string
+          (while lst
+            (setq v (pop lst))
+            (princ comma-space)
+            (prin1 v)))
+        (length comma-space)))
+     "]")))
+
 (defun ts-python-string-from-plist (plist)
   "Produce a string representation of a Python dict from PLIST."
   (let ((comma-space ", ")
@@ -154,7 +175,7 @@ This is mainly a convenience function."
              ((stringp v)
               (prin1 v))
              ((listp v)
-              (princ (ts-python-string-from-plist v))))))
+              (princ (ts-python-string-from-list v))))))
         (length comma-space)))
      "}")))
 
@@ -210,6 +231,10 @@ This is mainly a convenience function."
           (throw 'found-it result))))
     result))
 
+(defun ts-get-tags (hl)
+  "Pull a list of the tags associated with headline HL."
+  (mapcar #'substring-no-properties (org-element-property :tags hl)))
+
 (defun ts-get-value (key hl)
   "Pull the value associated with KEY from headline HL.
 
@@ -232,6 +257,7 @@ upcase / downcase issues with KEY."
          ((eq key :deadline) (push (ts-get-deadline hl) retval))
          ((eq key :filename) (push (ts-get-filename hl syntax-tree-alist)
                                    retval))
+         ((eq key :tags) (push (ts-get-tags hl) retval))
          (t (push (ts-get-value key hl) retval))))
       (nreverse retval))))
 
@@ -422,6 +448,7 @@ Insert the new structure into the syntax tree alist."
        ((eq k :closed) (if v (ts-set-closed hl v) (ts-unset-closed hl)))
        ((eq k :deadline)
         (if v (ts-set-deadline hl v) (ts-unset-deadline hl)))
+       ((eq k :tags) (org-element-put-property hl k v))
        (t (ts-set-drawer hl k v))))))
 
 (defun ts-update-file (filename plist)

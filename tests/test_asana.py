@@ -13,6 +13,7 @@ from .helpers import assert_trees_equal_p
 MOCK_WORKSPACE_ID = 'DEFAULT'
 MOCK_CREATED_PROJECT_ID = 'NEW PROJECT'
 MOCK_EXTANT_PROJECT_ID = 'PROJECT'
+MOCK_CREATED_TAG_ID = 'NEW TAG'
 MOCK_CREATED_TASK_ID = 'NEW TASK'
 MOCK_EXTANT_TASK_ID = 'TASK'
 
@@ -43,7 +44,10 @@ def mock_task_node(info_dict=None):
         mock.Mock(return_value={'id': MOCK_CREATED_PROJECT_ID}),
         mock.Mock(),
         mock.Mock(),
+        mock.Mock(return_value={'id': MOCK_CREATED_TAG_ID}),
         mock.Mock(return_value={'id': MOCK_CREATED_TASK_ID}),
+        mock.Mock(),
+        mock.Mock(),
         mock.Mock(),
         mock.Mock(),
         mock.Mock(),
@@ -65,7 +69,7 @@ def default_side_effect_fn(*args, **kwargs):
 def mock_source(find_by_workspace_return=None,
                 find_by_workspace_side_effect=None,
                 project_tasks_return=None, project_tasks_side_effect=None,
-                find_all_return=None,
+                tag_find_by_workspace_return=None, find_all_return=None,
                 subtasks_return=None, subtasks_side_effect=None):
     if find_by_workspace_return is None:
         find_by_workspace_return = []
@@ -75,6 +79,8 @@ def mock_source(find_by_workspace_return=None,
         project_tasks_return = []
     if project_tasks_side_effect is None:
         project_tasks_side_effect = default_side_effect_fn
+    if tag_find_by_workspace_return is None:
+        tag_find_by_workspace_return = []
     if find_all_return is None:
         find_all_return = []
     if subtasks_return is None:
@@ -90,10 +96,14 @@ def mock_source(find_by_workspace_return=None,
         mock.Mock(return_value={'id': MOCK_CREATED_PROJECT_ID}),
         mock.Mock(),
         mock.Mock(),
+        mock.Mock(return_value=tag_find_by_workspace_return),
+        mock.Mock(return_value={'id': MOCK_CREATED_TAG_ID}),
         mock.Mock(return_value=find_all_return),
         mock.Mock(return_value=subtasks_return,
                   side_effect=subtasks_side_effect),
         mock.Mock(return_value={'id': MOCK_CREATED_TASK_ID}),
+        mock.Mock(),
+        mock.Mock(),
         mock.Mock(),
         mock.Mock(),
         mock.Mock(),
@@ -345,6 +355,42 @@ def test_task_node_update(current_node, new_node, expected):
 
 
 @pytest.mark.parametrize(
+    "current_node, new_node, tag_dict, expected_add, expected_remove", [
+        (mock_task_node(),
+         mock_task_node({'tags': set(('morning', ))}),
+         {'morning': 1}, [1], []),
+        (mock_task_node({'tags': set(('evening', ))}),
+         mock_task_node({'tags': set()}),
+         {'evening': 2}, [], [2]),
+        (mock_task_node({'tags': set(('morning', '@home'))}),
+         mock_task_node({'tags': set(('evening', '@work'))}),
+         {'morning': 1, '@home': 2, 'evening': 3, '@work': 4},
+         [3, 4], [1, 2])])
+def test_task_node_update_tags(current_node, new_node, tag_dict,
+                               expected_add, expected_remove):
+    "Does TaskNode.external_update handle tags correctly?"
+    current_node.tag_dict = tag_dict
+    current_node.external_update(new_node)
+    add_calls = [mock.call(current_node.id, params={'tag': t})
+                 for t in expected_add]
+    current_node._task_add_tag.assert_has_calls(add_calls, any_order=True)
+    remove_calls = [mock.call(current_node.id, params={'tag': t})
+                    for t in expected_remove]
+    current_node._task_remove_tag.assert_has_calls(
+        remove_calls, any_order=True)
+    current_node._task_update.assert_not_called()
+
+
+def test_task_node_update_tags_noop():
+    "Does TaskNode.external_update handle tags correctly?"
+    current_node = mock_task_node({'tags': set(('project', ))})
+    new_node = mock_task_node({'tags': set(('project', ))})
+    current_node.external_update(new_node)
+    current_node._task_add_tag.assert_not_called()
+    current_node._task_remove_tag.assert_not_called()
+
+
+@pytest.mark.parametrize(
     "current_node, new_node, expected_task_update, expected_project_update", [
         (mock_task_node({'project_id': '1'}),
          mock_task_node({'name': 'New Name'}),
@@ -545,6 +591,8 @@ def test_source_from_client(source_class):
     mock_client.attach_mock(mock_projects, 'projects')
     mock_tasks = mock.Mock(asana.resources.tasks.Tasks)
     mock_client.attach_mock(mock_tasks, 'tasks')
+    mock_tags = mock.Mock(asana.resources.tags.Tags)
+    mock_client.attach_mock(mock_tags, 'tags')
     assert source_class.from_client(mock_client)
 
 
@@ -718,6 +766,11 @@ def find_by_workspace_side_effect_fn(*projects):
      mock_tree(task_list=[{'id': 2, 'parent_id': None, 'project_id': 1,
                            'name': 'A task "project"',
                            'completed': True}])),
+    # Tags come back as a list of dicts, but I want them as a set.
+    (mock_source(
+        find_all_return=[{'id': 1, 'parent': None, 'tags': [{'id': 1}]}],
+        tag_find_by_workspace_return=[{'id': 1, 'name': 'morning'}]),
+     mock_tree(task_list=[{'id': 1, 'tags': set(('morning', ))}]))
 ])
 def test_source_get_all_items_result(asana_source, expected):
     "Does Source.get_all_items listen to Asana correctly?"
@@ -728,7 +781,7 @@ def test_source_get_all_items_result(asana_source, expected):
 @pytest.mark.parametrize("asana_source, expected_fields", [
     (mock_source(),
      ('id', 'name', 'notes', 'parent', 'completed', 'completed_at',
-      'due_on', 'due_at', 'projects'))])
+      'due_on', 'due_at', 'projects', 'tags'))])
 def test_source_get_all_items(asana_source, expected_fields):
     "Does Source.get_all_items talk to Asana correctly?"
     asana_source.get_all_items()

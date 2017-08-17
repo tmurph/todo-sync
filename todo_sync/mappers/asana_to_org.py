@@ -27,6 +27,8 @@ def make_fn(asana_source, o_node):
                 asana_dict['due_on'] = o_node.deadline
             else:
                 asana_dict['due_at'] = o_node.deadline
+        if hasattr(o_node, 'tags'):
+            asana_dict['tags'] = o_node.tags
         a_node = asana_source.make_task_node(asana_dict)
 
     elif isinstance(o_node, o.FilenameNode):
@@ -100,7 +102,9 @@ def eql_fn(a_node, o_node):
                  == COMPLETED_FROM_TYPE[o_node.todo_type]),
                 (getattr(o_node, 'deadline', None)
                  == (getattr(a_node, 'due_at', None)
-                     or (getattr(a_node, 'due_on', None))))]
+                     or (getattr(a_node, 'due_on', None)))),
+                (getattr(a_node, 'tags', None)
+                 == getattr(o_node, 'tags', None))]
             result = all(tests)
     elif isinstance(a_node, a.ProjectNode):
         if isinstance(o_node, o.FilenameNode):

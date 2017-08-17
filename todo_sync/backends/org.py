@@ -11,9 +11,14 @@ DEFAULT_TODO_TYPE = 'TODO'
 
 def elisp_string_from_value(value):
     "Make an Elisp string representation of a Python value."
-    if value:
-        result = str(value).replace('"', '\\"').replace('\n', '\\n')
+    if type(value) == str:
+        result = value.replace('"', '\\"').replace('\n', '\\n')
         result = '"' + result + '"'
+    elif type(value) == int:
+        result = '"' + str(value) + '"'
+    elif type(value) == set:
+        result = ' '.join(sorted(elisp_string_from_value(v) for v in value))
+        result = '(' + result + ')'
     else:
         result = 'nil'
     return result
@@ -172,7 +177,7 @@ class HeadlineNode(node.Node):
 class Source(source.Source):
     DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent_id',
                             'todo_type', 'closed', 'deadline',
-                            'filename')
+                            'filename', 'tags')
 
     def __init__(self, repl_get_source_command,
                  repl_make_headline_command, repl_to_source_command,
@@ -237,6 +242,11 @@ class Source(source.Source):
             filename = h.pop('filename', None)
             if h['parent_id'] is None:
                 h['parent_id'] = filename
+            if 'tags' in h:
+                if h['tags'] is None:
+                    h['tags'] = set()
+                else:
+                    h['tags'] = set(h['tags'])
             node = self.make_headline_node(h)
             node_cache[node.id] = node
 
