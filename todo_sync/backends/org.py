@@ -6,7 +6,7 @@ import todo_sync.helpers as lib
 
 
 DEFAULT_HEADLINE_TITLE = 'Default Headline from Todo-Sync'
-DEFAULT_TODO_KEYWORD = 'TODO'
+DEFAULT_TODO_TYPE = 'TODO'
 
 
 def elisp_string_from_value(value):
@@ -22,7 +22,7 @@ def elisp_string_from_value(value):
 def elisp_string_from_key(key):
     "Make an Elisp string representation of a Python key."
     result = str(key).lower()
-    if key in ['parent_id', 'todo_keyword']:
+    if key in ['parent_id', 'todo_type']:
         result = result.replace('_', '-')
     return result
 
@@ -127,7 +127,7 @@ class HeadlineNode(node.Node):
         self._repl_make_headline_command = repl_make_headline_command
         self._repl_to_source_command = repl_to_source_command
         self.title = DEFAULT_HEADLINE_TITLE
-        self.todo_keyword = DEFAULT_TODO_KEYWORD
+        self.todo_type = DEFAULT_TODO_TYPE
 
     def as_parent_insert_child_command(self, left_sibling_id,
                                        plist_string):
@@ -145,8 +145,8 @@ class HeadlineNode(node.Node):
     def external_update(self, other_node):
         parameters = {k: v for k, v in other_node.export_attrs.items()
                       if getattr(self, k, None) != v}
-        dont_update_closed_tests = [self.todo_keyword == 'DONE',
-                                    other_node.todo_keyword == 'DONE',
+        dont_update_closed_tests = [self.todo_type == 'DONE',
+                                    other_node.todo_type == 'DONE',
                                     parameters.get('closed', None)]
         if all(dont_update_closed_tests):
             parameters.pop('closed')
@@ -171,7 +171,7 @@ class HeadlineNode(node.Node):
 
 class Source(source.Source):
     DEFAULT_FETCH_FIELDS = ('id', 'title', 'paragraph', 'parent_id',
-                            'todo_keyword', 'closed', 'deadline',
+                            'todo_type', 'closed', 'deadline',
                             'filename')
 
     def __init__(self, repl_get_source_command,

@@ -94,7 +94,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        "** TODO this is the child headline"
        "this is the child paragraph"))
      ("1" nil (list :title "this is the new headline"
-                    :todo-keyword "done"
+                    :todo-type "done"
                     :id "A")
       (ts-make-data-from-text
        "* This is the parent headline"
@@ -112,7 +112,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":END:"))
      ("1" nil (list :id "A"
                     :title "this is the finished task"
-                    :todo-keyword "DONE"
+                    :todo-type "DONE"
                     :closed "2017-01-27T22:01:10.030Z")
       (ts-make-data-from-text
        "* TODO this is the parent headline"
@@ -194,7 +194,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        "** TODO this is the next parent headline"))
      ("1" nil (list :id "A"
                     :title "this task had a deadline"
-                    :todo-keyword "DONE"
+                    :todo-type "DONE"
                     :deadline "2017-01-27"
                     :closed "2017-01-22T22:53:20.020Z")
       (ts-make-data-from-text
@@ -430,7 +430,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":ID:       1"
        ":CUSTOM_ID: A"
        ":END:"))
-     ("1" (list :todo-keyword "done")
+     ("1" (list :todo-type "done")
       (ts-make-data-from-text
        "* TODO this is the current headline"
        ":PROPERTIES:"
@@ -441,7 +441,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       1"
        ":END:"))
-     ("1" (list :todo-keyword "DONE")
+     ("1" (list :todo-type "DONE")
       (ts-make-data-from-text
        "* TODO this is the current headline"
        ":PROPERTIES:"
@@ -452,7 +452,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       1"
        ":END:"))
-     ("1" (list :todo-keyword "TODO")
+     ("1" (list :todo-type "TODO")
       (ts-make-data-from-text
        "* DONE this is the current headline"
        ":PROPERTIES:"
@@ -463,7 +463,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       1"
        ":END:"))
-     ("1" (list :todo-keyword "DONE"
+     ("1" (list :todo-type "DONE"
                 :closed "2017-01-27T22:01:10.030Z")
       (ts-make-data-from-text
        "* TODO this is the current headline"
@@ -476,7 +476,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       1"
        ":END:"))
-     ("1" (list :todo-keyword "TODO"
+     ("1" (list :todo-type "TODO"
                 :closed nil)
       (ts-make-data-from-text
        "* DONE this is the current headline"
@@ -509,7 +509,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       A"
        ":END:"))
-     ("1" (list :todo-keyword "DONE"
+     ("1" (list :todo-type "DONE"
                 :closed "2017-01-27T22:01:10.030Z")
       (ts-make-data-from-text
        "* TODO this is the current headline"
@@ -532,7 +532,7 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        ":PROPERTIES:"
        ":ID:       A"
        ":END:"))
-     ("1" (list :todo-keyword "TODO" :closed nil)
+     ("1" (list :todo-type "TODO" :closed nil)
       (ts-make-data-from-text
        "* DONE this is the current headline"
        "CLOSED: [2017-01-27 Fri 14:01]"
@@ -880,9 +880,9 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
        "* TODO this is the headline"
        "- a bulleted list")
       "[{'paragraph': \"- a bulleted list\"}]")
-     ('(:todo-keyword)
+     ('(:todo-type)
       (ts-make-data-from-text "* TODO this is the headline")
-      "[{'todo_keyword': \"TODO\"}]")
+      "[{'todo_type': \"TODO\"}]")
      ('(:id)
       (ts-make-data-from-text
        "* TODO this is a todo headline"

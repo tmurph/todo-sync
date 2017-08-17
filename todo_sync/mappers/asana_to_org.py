@@ -8,7 +8,7 @@ import todo_sync.backends.asana as a
 import todo_sync.backends.org as o
 import todo_sync.helpers as h
 
-COMPLETED_FROM_KEYWORD = {'TODO': False, 'DONE': True, 'SKIPPED': True}
+COMPLETED_FROM_TYPE = {'TODO': False, 'DONE': True}
 
 
 def make_fn(asana_source, o_node):
@@ -19,9 +19,9 @@ def make_fn(asana_source, o_node):
         asana_dict['name'] = o_node.title
         if getattr(o_node, 'paragraph', None):
             asana_dict['notes'] = o_node.paragraph
-        if getattr(o_node, 'todo_keyword', None):
-            asana_dict['completed'] = COMPLETED_FROM_KEYWORD.get(
-                o_node.todo_keyword)
+        if getattr(o_node, 'todo_type', None):
+            asana_dict['completed'] = COMPLETED_FROM_TYPE.get(
+                o_node.todo_type)
         if getattr(o_node, 'deadline', None):
             if re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}$", o_node.deadline):
                 asana_dict['due_on'] = o_node.deadline
@@ -97,7 +97,7 @@ def eql_fn(a_node, o_node):
                 (getattr(a_node, 'notes', None)
                  == getattr(o_node, 'paragraph', None)),
                 (a_node.completed
-                 == COMPLETED_FROM_KEYWORD[o_node.todo_keyword]),
+                 == COMPLETED_FROM_TYPE[o_node.todo_type]),
                 (getattr(o_node, 'deadline', None)
                  == (getattr(a_node, 'due_at', None)
                      or (getattr(a_node, 'due_on', None))))]

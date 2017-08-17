@@ -63,7 +63,7 @@ This is mainly a convenience function."
   "Create a headline from the info in PLIST."
   (or (plist-get plist :title) (user-error "No title provided in `%s'"
                                            plist))
-  (let ((special-keys '(:title :paragraph :parent :todo-keyword
+  (let ((special-keys '(:title :paragraph :parent :todo-type
                                :closed :deadline))
         text-mode-hook org-mode-hook
         k v)
@@ -71,7 +71,8 @@ This is mainly a convenience function."
         (with-temp-buffer
           (org-mode)
           (insert "* ")
-          (insert (upcase (or (plist-get plist :todo-keyword) "TODO")))
+          ;; we set the todo keyword even though we are given the todo type
+          (insert (upcase (or (plist-get plist :todo-type) "TODO")))
           (insert " ")
           (insert (plist-get plist :title) "\n")
           (insert (or (plist-get plist :paragraph) ""))
@@ -179,9 +180,9 @@ This is mainly a convenience function."
          (member parent-todo-type '(todo done))
          (org-element-property :ID parent))))
 
-(defun ts-get-todo-keyword (hl)
-  "Pull the todo keyword from headline HL."
-  (substring-no-properties (org-element-property :todo-keyword hl)))
+(defun ts-get-todo-type (hl)
+  "Pull the todo type from headline HL."
+  (upcase (symbol-name (org-element-property :todo-type hl))))
 
 (defun ts-get-closed (hl)
   "Pull the closing timestamp from headline HL."
@@ -226,7 +227,7 @@ upcase / downcase issues with KEY."
          ((eq key :title) (push (ts-get-title hl) retval))
          ((eq key :paragraph) (push (ts-get-paragraph hl) retval))
          ((eq key :parent-id) (push (ts-get-parent-id hl) retval))
-         ((eq key :todo-keyword) (push (ts-get-todo-keyword hl) retval))
+         ((eq key :todo-type) (push (ts-get-todo-type hl) retval))
          ((eq key :closed) (push (ts-get-closed hl) retval))
          ((eq key :deadline) (push (ts-get-deadline hl) retval))
          ((eq key :filename) (push (ts-get-filename hl syntax-tree-alist)
@@ -415,7 +416,9 @@ Insert the new structure into the syntax tree alist."
       (cond
        ((eq k :title) (org-element-put-property hl k v))
        ((eq k :paragraph) (ts-set-paragraph hl v))
-       ((eq k :todo-keyword) (org-element-put-property hl k (upcase v)))
+       ;; we set the todo keyword, even though we are given the todo type
+       ((eq k :todo-type)
+        (org-element-put-property hl :todo-keyword (upcase v)))
        ((eq k :closed) (if v (ts-set-closed hl v) (ts-unset-closed hl)))
        ((eq k :deadline)
         (if v (ts-set-deadline hl v) (ts-unset-deadline hl)))

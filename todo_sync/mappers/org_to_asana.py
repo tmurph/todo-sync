@@ -13,7 +13,7 @@ def make_fn(org_source, a_node):
 
     if isinstance(a_node, a.TaskNode):
         org_dict['title'] = a_node.name
-        org_dict['todo_keyword'] = 'DONE' if a_node.completed else 'TODO'
+        org_dict['todo_type'] = 'DONE' if a_node.completed else 'TODO'
         org_dict['asana_id'] = str(a_node.id)
         if getattr(a_node, 'completed_at', None):
             org_dict['closed'] = a_node.completed_at
@@ -93,14 +93,13 @@ def eql_fn(o_node, a_node):
     result = False
     if isinstance(o_node, o.HeadlineNode):
         if isinstance(a_node, a.TaskNode):
-            completed_from_keyword = {'TODO': False, 'DONE': True,
-                                      'SKIPPED': True}
+            completed_from_type = {'TODO': False, 'DONE': True}
             tests = [
                 (a_node.name == o_node.title),
                 (getattr(a_node, 'notes', None)
                  == getattr(o_node, 'paragraph', None)),
                 (a_node.completed
-                 == completed_from_keyword[o_node.todo_keyword]),
+                 == completed_from_type[o_node.todo_type]),
                 (a_node.id
                  == lib.safe_int(getattr(o_node, 'asana_id', None))),
                 (a_node.project_id
