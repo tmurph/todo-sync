@@ -103,8 +103,8 @@ def test_a2o_ahead_get_tree(ahead_source):
      mapped_mock_task_node({'due_at': '2016-11-20T03:34:00.000Z'})),
     (mapped_mock_filename_node({'id': 'My Inbox'}),
      mapped_mock_project_node({'name': 'My Inbox'})),
-    (mapped_mock_headline_node({'tags': set(('morning', ))}),
-     mapped_mock_task_node({'tags': set(('morning', ))})),
+    (mapped_mock_headline_node({'tags': {'morning'}}),
+     mapped_mock_task_node({'tags': {'morning'}})),
     (mapped_mock_headline_node({'tags': set()}),
      mapped_mock_task_node({'tags': set()}))])
 def test_a2o_behind_make_fn(o_node, expected_node, behind_source):
@@ -174,8 +174,8 @@ def test_a2o_map_fn(a_node, o_node, expected):
     (mapped_mock_project_node({'name': 'On the one hand ...'}),
      mapped_mock_headline_node({'title': 'On the other hand ...'}),
      False),
-    (mapped_mock_task_node({'tags': set(('@home', ))}),
-     mapped_mock_headline_node({'tags': set(('@work', ))}),
+    (mapped_mock_task_node({'tags': {'@home'}}),
+     mapped_mock_headline_node({'tags': {'@work'}}),
      False)])
 def test_a2o_eql_fn(a_node, o_node, expected):
     "Can we compare Asana nodes to Org nodes?"

@@ -115,9 +115,9 @@ def test_o2a_ahead_get_tree(ahead_source):
     (mapped_mock_project_node({'name': 'My Inbox'}),
      mapped_mock_filename_node({'id': 'My Inbox',
                                 'asana_project_id': str(MOCK_PROJECT_ID)})),
-    (mapped_mock_task_node({'tags': set(('@work', ))}),
+    (mapped_mock_task_node({'tags': {'@work'}}),
      mapped_mock_headline_node({'asana_id': str(MOCK_TASK_ID),
-                                'tags': set(('@work', ))})),
+                                'tags': {'@work'}})),
     (mapped_mock_task_node({'tags': set()}),
      mapped_mock_headline_node({'asana_id': str(MOCK_TASK_ID),
                                 'tags': set()}))])
@@ -175,8 +175,8 @@ def test_o2a_map_fn(o_node, a_node, expected):
      mapped_mock_project_node({'name': 'My Inbox'}),
      True),
     (mapped_mock_headline_node({'asana_id': str(MOCK_TASK_ID),
-                                'tags': set(('@home', ))}),
-     mapped_mock_task_node({'tags': set(('@work', ))}),
+                                'tags': {'@home'}}),
+     mapped_mock_task_node({'tags': {'@work'}}),
      False)])
 def test_o2a_eql_fn(o_node, a_node, expected):
     "Can we compare Org nodes to Asana nodes?"

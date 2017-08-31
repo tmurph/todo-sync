@@ -357,13 +357,13 @@ def test_task_node_update(current_node, new_node, expected):
 @pytest.mark.parametrize(
     "current_node, new_node, tag_dict, expected_add, expected_remove", [
         (mock_task_node(),
-         mock_task_node({'tags': set(('morning', ))}),
+         mock_task_node({'tags': {'morning'}}),
          {'morning': 1}, [1], []),
-        (mock_task_node({'tags': set(('evening', ))}),
+        (mock_task_node({'tags': {'evening'}}),
          mock_task_node({'tags': set()}),
          {'evening': 2}, [], [2]),
-        (mock_task_node({'tags': set(('morning', '@home'))}),
-         mock_task_node({'tags': set(('evening', '@work'))}),
+        (mock_task_node({'tags': {'morning', '@home'}}),
+         mock_task_node({'tags': {'evening', '@work'}}),
          {'morning': 1, '@home': 2, 'evening': 3, '@work': 4},
          [3, 4], [1, 2])])
 def test_task_node_update_tags(current_node, new_node, tag_dict,
@@ -383,8 +383,8 @@ def test_task_node_update_tags(current_node, new_node, tag_dict,
 
 def test_task_node_update_tags_noop():
     "Does TaskNode.external_update handle tags correctly?"
-    current_node = mock_task_node({'tags': set(('project', ))})
-    new_node = mock_task_node({'tags': set(('project', ))})
+    current_node = mock_task_node({'tags': {'project'}})
+    new_node = mock_task_node({'tags': {'project'}})
     current_node.external_update(new_node)
     current_node._task_add_tag.assert_not_called()
     current_node._task_remove_tag.assert_not_called()
@@ -770,7 +770,7 @@ def find_by_workspace_side_effect_fn(*projects):
     (mock_source(
         find_all_return=[{'id': 1, 'parent': None, 'tags': [{'id': 1}]}],
         tag_find_by_workspace_return=[{'id': 1, 'name': 'morning'}]),
-     mock_tree(task_list=[{'id': 1, 'tags': set(('morning', ))}]))
+     mock_tree(task_list=[{'id': 1, 'tags': {'morning'}}]))
 ])
 def test_source_get_all_items_result(asana_source, expected):
     "Does Source.get_all_items listen to Asana correctly?"

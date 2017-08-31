@@ -126,7 +126,7 @@ def mock_tree(root_node=None, filename_list=None, headline_list=None):
                   ' :custom_id "A"))'])),
         (mock_headline_node(),
          None,
-         mock_headline_node({'tags': set(("morning", ))}),
+         mock_headline_node({'tags': {"morning"}}),
          ''.join(['(ts-insert-child "', MOCK_EXTANT_HEADLINE_ID, '" nil',
                   ' \'(:title "', o.DEFAULT_HEADLINE_TITLE, '"',
                   ' :todo-type "', o.DEFAULT_TODO_TYPE, '"',
@@ -210,11 +210,11 @@ def test_headline_node_insert_as_child_result():
      ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:custom "ID"))'])),
     (mock_headline_node(),
-     mock_headline_node({'tags': set(("morning", ))}),
+     mock_headline_node({'tags': {"morning"}}),
      ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:tags ("morning")))'])),
     (mock_headline_node(),
-     mock_headline_node({'tags': set(("morning", "@home"))}),
+     mock_headline_node({'tags': {"morning", "@home"}}),
      ''.join(['(ts-update "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' \'(:tags ("@home" "morning")))'])),
     (mock_filename_node({'id': 'project.org'}),
@@ -305,11 +305,11 @@ def test_source_from_repl(source_class):
      mock_tree(headline_list=[{'id': '1', 'tags': set()}])),
     (mock_source(get_all_headlines_return=[
         {'id': '1', 'parent_id': None, 'tags': ["morning"]}]),
-     mock_tree(headline_list=[{'id': '1', 'tags': set(("morning", ))}])),
+     mock_tree(headline_list=[{'id': '1', 'tags': {"morning"}}])),
     (mock_source(get_all_headlines_return=[
         {'id': '1', 'parent_id': None, 'tags': ["morning", "evening"]}]),
      mock_tree(headline_list=[{'id': '1',
-                               'tags': set(("morning", "evening"))}]))])
+                               'tags': {"morning", "evening"}}]))])
 def test_source_get_all_items_result(org_source, expected):
     "Does Source.get_all_items listen to Emacs correctly?"
     result = org_source.get_all_items()
