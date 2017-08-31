@@ -246,7 +246,12 @@ def test_headline_node_update(current_node, new_node, expected):
      mock_filename_node(),
      ''.join(['(ts-move-to-file "', MOCK_EXTANT_HEADLINE_ID, '"',
               ' nil',
-              ' "', MOCK_FILENAME_ID, '")']))])
+              ' "', MOCK_FILENAME_ID, '")'])),
+    (mock_headline_node(),
+     None,
+     mock_root_node(),
+     ''.join(['(ts-move-to-file "', MOCK_EXTANT_HEADLINE_ID, '"',
+              ' nil nil)']))])
 def test_headline_node_move_to(child_node, pos, parent_node, expected):
     "Does HeadlineNode.external_move_to talk to Emacs correctly?"
     child_node.external_move_to(pos, parent_node)

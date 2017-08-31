@@ -83,6 +83,12 @@ class RootNode(node.RootNode):
         return '(ts-insert-child-into-file nil {} \'{})'.format(
             export_left_id, plist_string)
 
+    def as_parent_move_child_command(self, child_id, left_sibling_id):
+        export_child_id = elisp_string_from_id(child_id)
+        export_left_id = elisp_string_from_id(left_sibling_id)
+        return '(ts-move-to-file {} {} nil)'.format(
+            export_child_id, export_left_id)
+
 
 class FilenameNode(node.Node):
 
