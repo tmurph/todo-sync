@@ -817,7 +817,20 @@ Bind PARAMS to sequential elements from VALUES and execute test BODY."
                                    ":PROPERTIES:"
                                    ":ID:       B"
                                    ":END:"
-                                   "* TODO gonna get pushed"))))
+                                   "* TODO gonna get pushed")))
+     ("A" nil nil
+      (list (ts-make-ast-from-text "first")
+            (ts-make-ast-from-text "second"
+                                   "* TODO this headline moves"
+                                   ":PROPERTIES:"
+                                   ":ID:       A"
+                                   ":END:"))
+      (list (ts-make-ast-from-text "first"
+                                   "* TODO this headline moves"
+                                   ":PROPERTIES:"
+                                   ":ID:       A"
+                                   ":END:")
+            (ts-make-ast-from-text "second"))))
   (let ((*org-ast-list* ast-data))
     (ts-move-to-file child-id left-sibling-id new-filename)
     (should (equal (apply #'ts-interpret-ast ast-data)
