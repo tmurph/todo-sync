@@ -120,7 +120,10 @@ def test_o2a_ahead_get_tree(ahead_source):
                                 'tags': {'@work'}})),
     (mapped_mock_task_node({'tags': set()}),
      mapped_mock_headline_node({'asana_id': str(MOCK_TASK_ID),
-                                'tags': set()}))])
+                                'tags': set()})),
+    (mapped_mock_task_node({'notes': ''}),
+     mapped_mock_headline_node({'asana_id': str(MOCK_TASK_ID),
+                                'paragraph': ''}))])
 def test_o2a_behind_make_fn(a_node, expected_node, behind_source):
     "Does the Org Source have a special make_fn method?"
     o_node = behind_source.make_fn(a_node)

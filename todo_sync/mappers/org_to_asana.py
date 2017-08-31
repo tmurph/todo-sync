@@ -17,7 +17,7 @@ def make_fn(org_source, a_node):
         org_dict['asana_id'] = str(a_node.id)
         if getattr(a_node, 'completed_at', None):
             org_dict['closed'] = a_node.completed_at
-        if getattr(a_node, 'notes', None):
+        if hasattr(a_node, 'notes'):
             org_dict['paragraph'] = a_node.notes
         deadline_info = (getattr(a_node, 'due_at', None)
                          or getattr(a_node, 'due_on', None))
