@@ -139,113 +139,223 @@ def mock_tree(root_node=None, project_list=None, task_list=None):
     return root
 
 
-@pytest.mark.parametrize(
-    "parent_node, left_sibling_id, child_node, expected_task_create", [
-        (mock_tree(mock_task_node()),
-         None,
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False}),
-        (mock_tree(mock_task_node()),
-         None,
-         mock_task_node({'id': 'ignored'}),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False}),
-        (mock_tree(mock_task_node({'name': 'a project'}),
-                   task_list=[{'id': 'A'}]),
-         None,
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False}),
-        (mock_tree(mock_task_node(),
-                   task_list=[{'id': 'A'}, {'id': 'B'}]),
-         'A',
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False}),
-        (mock_tree(mock_task_node()),
-         None,
-         mock_task_node({'name': 'a task', 'custom': 'ID'}),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': 'a task', 'completed': False, 'custom': 'ID'})])
-def test_task_node_insert_as_child_under_task(
-        parent_node, left_sibling_id, child_node, expected_task_create):
-    "Does TaskNode.external_insert_as_child talk to Asana correctly?"
-    old_parent_node = child_node.parent
+def test_task_node_insert_as_child_under_task_make_a_project():
+    "Does TaskNode.external_insert_as_child create a project?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_task_node()
     child_node.external_insert_as_child(left_sibling_id, parent_node)
     parent_node._project_create_in_workspace.assert_called_with(
         MOCK_WORKSPACE_ID, params={'name': parent_node.name,
                                    'archived': parent_node.completed})
+
+
+def test_task_node_insert_as_child_under_task_set_project_id():
+    "Does TaskNode.external_insert_as_child set the project id?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     assert parent_node.project_id == MOCK_CREATED_PROJECT_ID
-    task_reparent_params = {'project': MOCK_CREATED_PROJECT_ID,
-                            'insert_after': left_sibling_id}
-    new_left_sibling_id = None
-    if getattr(old_parent_node, 'children', None):
-        for c_node in old_parent_node.children:
-            task_reparent_params['insert_after'] = new_left_sibling_id
-            c_node._task_set_parent.assert_called_with(
-                c_node.id, params={'parent': None})
-            c_node._task_add_project.assert_called_with(
-                c_node.id, params=task_reparent_params)
-            new_left_sibling_id = c_node.id
-    task_reparent_params['insert_after'] = left_sibling_id
+
+
+def test_task_node_insert_as_child_under_task_unset_parent():
+    "Does TaskNode.external_insert_as_child unparent other subtasks?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_tree(mock_task_node(),
+                             task_list=[{'id': 'A'}, {'id': 'B'}])
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    for c_node in parent_node.children:
+        c_node._task_set_parent.assert_called_with(
+            c_node.id, params={'parent': None})
+
+
+def test_task_node_insert_as_child_under_task_add_subtasks():
+    "Does TaskNode.external_insert_as_child add subtasks to the project in order?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_tree(mock_task_node(),
+                             task_list=[{'id': 'A'}, {'id': 'B'}])
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    task_add_project_params = {'project': MOCK_CREATED_PROJECT_ID,
+                               'insert_after': None}
+    for c_node in parent_node.children:
+        c_node._task_add_project.assert_called_with(
+            c_node.id, params=task_add_project_params)
+        task_add_project_params['insert_after'] = c_node.id
+
+
+@pytest.mark.parametrize("child_node, expected_task_create", [
+    (mock_task_node(),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': a.DEFAULT_TASK_NAME, 'completed': False}),
+    (mock_task_node({'id': 'ignored'}),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': a.DEFAULT_TASK_NAME, 'completed': False}),
+    (mock_task_node({'name': 'a task'}),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': 'a task', 'completed': False}),
+    (mock_task_node({'custom': 'ID'}),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': a.DEFAULT_TASK_NAME, 'completed': False, 'custom': 'ID'})])
+def test_task_node_insert_as_child_under_task_make_a_task(
+        child_node, expected_task_create):
+    "Does TaskNode.external_insert_as_child create a task?"
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     child_node._task_create.assert_called_with(
         params=expected_task_create)
+
+
+@pytest.mark.parametrize("child_node, expected_task_create", [
+    (mock_task_node({'tags': set()}, tag_dict={}),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': a.DEFAULT_TASK_NAME, 'completed': False, 'tags': []}),
+    (mock_task_node({'tags': {'morning', 'evening'}},
+                    tag_dict={'morning': 1, 'evening': 2}),
+     {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+      'name': a.DEFAULT_TASK_NAME, 'completed': False, 'tags': [1, 2]})])
+def test_task_node_insert_as_child_under_task_make_a_tagged_task(
+        child_node, expected_task_create):
+    "Does TaskNode.external_insert_as_child create a task with tags?"
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    child_node._task_create.assert_called_with(
+        params=expected_task_create)
+
+
+def test_task_node_insert_as_child_under_task_make_a_tag():
+    "Does TaskNode.external_insert_as_child create new tags for tasks?"
+    child_node = mock_task_node({'tags': {'morning'}},
+                                tag_dict={})
+    tag_name_lookup = child_node._tag_name_lookup
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    tag_name_lookup._tag_create_in_workspace.assert_called_with(
+        MOCK_WORKSPACE_ID, params={'name': 'morning'})
+
+
+def test_task_node_insert_as_child_under_task_store_a_tag():
+    "Does TaskNode.external_insert_as_child store new tags?"
+    child_node = mock_task_node({'tags': {'morning'}},
+                                tag_dict={})
+    tag_name_lookup = child_node._tag_name_lookup
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    assert 'morning' in tag_name_lookup
+
+
+def test_task_node_insert_as_child_under_task_set_task_id():
+    "Does TaskNode.external_insert_as_child set the task id?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     assert child_node.id == MOCK_CREATED_TASK_ID
+
+
+@pytest.mark.parametrize("left_sibling_id, parent_node", [
+    (None, mock_task_node()),
+    (None, mock_tree(mock_task_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}])),
+    ('A', mock_tree(mock_task_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}])),
+    ('B', mock_tree(mock_task_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}]))])
+def test_task_node_insert_as_child_under_task_add_project(
+        left_sibling_id, parent_node):
+    "Does TaskNode.external_insert_as_child add the task to the project?"
+    child_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     child_node._task_add_project.assert_called_with(
-        child_node.id, params=task_reparent_params)
+        child_node.id, params={'project': MOCK_CREATED_PROJECT_ID,
+                               'insert_after': left_sibling_id})
 
 
-@pytest.mark.parametrize(
-    "parent_node, left_sibling_id, child_node, expected_task_create,"
-    " expected_task_reparent", [
-        (mock_tree(mock_projtask_node()),
-         None,
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False},
-         {'project': MOCK_EXTANT_PROJECT_ID, 'insert_after': None}),
-        (mock_tree(mock_projtask_node({'project_id': 12345})),
-         None,
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False},
-         {'project': 12345, 'insert_after': None}),
-        (mock_tree(mock_projtask_node(),
-                   task_list=[{'id': 'A'}, {'id': 'B'}]),
-         'A',
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False},
-         {'project': MOCK_EXTANT_PROJECT_ID, 'insert_after': 'A'}),
-        (mock_tree(mock_projtask_node(),
-                   task_list=[{'id': 'A'}, {'id': 'B', 'parent': 'A'}]),
-         'A',
-         mock_task_node(),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': a.DEFAULT_TASK_NAME, 'completed': False},
-         {'project': MOCK_EXTANT_PROJECT_ID, 'insert_after': 'A'}),
-        (mock_tree(mock_projtask_node()),
-         None,
-         mock_task_node({'name': 'a task', 'custom': 'ID'}),
-         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
-          'name': 'a task', 'completed': False, 'custom': 'ID'},
-         {'project': MOCK_EXTANT_PROJECT_ID, 'insert_after': None})])
-def test_task_node_insert_as_child_under_projectified_task(
-        parent_node, left_sibling_id, child_node, expected_task_create,
-        expected_task_reparent):
-    "Does TaskNode.external_insert_as_child talk to Asana correctly?"
+def test_task_node_insert_as_child_under_projectified_task_no_project():
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_projtask_node()
     child_node.external_insert_as_child(left_sibling_id, parent_node)
     parent_node._project_create_in_workspace.assert_not_called()
+
+
+def test_task_node_insert_as_child_under_projectified_task_no_reparent():
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_tree(mock_projtask_node(),
+                            task_list=[{'id': 'A'}, {'id': 'B'}])
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     for c_node in parent_node.children:
         if c_node.id != child_node.id:
             c_node._task_set_parent.assert_not_called()
+
+
+def test_task_node_insert_as_child_under_projectified_task_no_reproject():
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_tree(mock_projtask_node(),
+                            task_list=[{'id': 'A'}, {'id': 'B'}])
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
+    for c_node in parent_node.children:
+        if c_node.id != child_node.id:
             c_node._task_add_project.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "parent_node, left_sibling_id, child_node, expected_task_create", [
+        (mock_tree(mock_projtask_node()),
+         None,
+         mock_task_node(),
+         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+          'name': a.DEFAULT_TASK_NAME, 'completed': False}),
+        (mock_tree(mock_projtask_node()),
+         None,
+         mock_task_node({'name': 'a task'}),
+         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+          'name': 'a task', 'completed': False}),
+        (mock_tree(mock_projtask_node()),
+         None,
+         mock_task_node({'custom': 'ID'}),
+         {'assignee': 'me', 'workspace': MOCK_WORKSPACE_ID,
+          'name': a.DEFAULT_TASK_NAME, 'completed': False, 'custom': 'ID'})])
+def test_task_node_insert_as_child_under_projectified_task_create_task(
+        parent_node, left_sibling_id, child_node, expected_task_create):
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     child_node._task_create.assert_called_with(
         params=expected_task_create)
+
+
+def test_task_node_insert_as_child_under_projectified_task_set_task_id():
+    "Does TaskNode.external_insert_as_child set the task id?"
+    child_node = mock_task_node()
+    left_sibling_id = None
+    parent_node = mock_projtask_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     assert child_node.id == MOCK_CREATED_TASK_ID
+
+
+@pytest.mark.parametrize("left_sibling_id, parent_node", [
+    (None, mock_projtask_node()),
+    (None, mock_tree(mock_projtask_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}])),
+    ('A', mock_tree(mock_projtask_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}])),
+    ('B', mock_tree(mock_projtask_node(),
+                     task_list=[{'id': 'A'}, {'id': 'B'}]))])
+def test_task_node_insert_as_child_under_projectified_task_add_project(
+        left_sibling_id, parent_node):
+    "Does TaskNode.external_insert_as_child add the task to the project?"
+    child_node = mock_task_node()
+    child_node.external_insert_as_child(left_sibling_id, parent_node)
     child_node._task_add_project.assert_called_with(
-        child_node.id, params=expected_task_reparent)
+        child_node.id, params={'project': MOCK_EXTANT_PROJECT_ID,
+                               'insert_after': left_sibling_id})
 
 
 @pytest.mark.parametrize(
