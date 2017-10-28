@@ -34,17 +34,22 @@ def mock_project_node(info_dict=None):
         mock.Mock())
 
 
-def mock_task_node(info_dict=None):
+def mock_task_node(info_dict=None, tag_dict=None):
     default_dict = {'id': MOCK_EXTANT_TASK_ID, 'parent': None}
     if info_dict:
         default_dict.update(info_dict)
+    if tag_dict is None:
+        tag_dict = {}
     return a.TaskNode.from_dict(
         default_dict,
         MOCK_WORKSPACE_ID,
         mock.Mock(return_value={'id': MOCK_CREATED_PROJECT_ID}),
         mock.Mock(),
         mock.Mock(),
-        mock.Mock(return_value={'id': MOCK_CREATED_TAG_ID}),
+        a.TagNameLookup(
+            MOCK_WORKSPACE_ID,
+            mock.Mock(return_value={'id': MOCK_CREATED_TAG_ID}),
+            tag_dict),
         mock.Mock(return_value={'id': MOCK_CREATED_TASK_ID}),
         mock.Mock(),
         mock.Mock(),
@@ -355,21 +360,22 @@ def test_task_node_update(current_node, new_node, expected):
 
 
 @pytest.mark.parametrize(
-    "current_node, new_node, tag_dict, expected_add, expected_remove", [
-        (mock_task_node(),
+    "current_node, new_node, expected_add, expected_remove", [
+        (mock_task_node(tag_dict={'morning': 1}),
          mock_task_node({'tags': {'morning'}}),
-         {'morning': 1}, [1], []),
-        (mock_task_node({'tags': {'evening'}}),
+         [1], []),
+        (mock_task_node({'tags': {'evening'}},
+                        tag_dict={'evening': 2}),
          mock_task_node({'tags': set()}),
-         {'evening': 2}, [], [2]),
-        (mock_task_node({'tags': {'morning', '@home'}}),
+         [], [2]),
+        (mock_task_node({'tags': {'morning', '@home'}},
+                        tag_dict={'morning': 1, '@home': 2,
+                                  'evening': 3, '@work': 4}),
          mock_task_node({'tags': {'evening', '@work'}}),
-         {'morning': 1, '@home': 2, 'evening': 3, '@work': 4},
          [3, 4], [1, 2])])
-def test_task_node_update_tags(current_node, new_node, tag_dict,
+def test_task_node_update_tags(current_node, new_node,
                                expected_add, expected_remove):
     "Does TaskNode.external_update handle tags correctly?"
-    current_node.tag_dict = tag_dict
     current_node.external_update(new_node)
     add_calls = [mock.call(current_node.id, params={'tag': t})
                  for t in expected_add]

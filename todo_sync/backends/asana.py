@@ -57,7 +57,7 @@ class TaskNode(node.Node):
 
     def __init__(self, workspace_id, project_create_in_workspace_fn,
                  project_update_fn, project_delete_fn,
-                 tag_create_in_workspace_fn, task_create_fn,
+                 tag_name_lookup, task_create_fn,
                  task_update_fn, task_set_parent_fn, task_add_project_fn,
                  task_remove_project_fn, task_add_tag_fn,
                  task_remove_tag_fn, task_delete_fn):
@@ -66,7 +66,7 @@ class TaskNode(node.Node):
         self._project_create_in_workspace = project_create_in_workspace_fn
         self._project_update = project_update_fn
         self._project_delete = project_delete_fn
-        self._tag_create_in_workspace = tag_create_in_workspace_fn
+        self._tag_name_lookup = tag_name_lookup
         self._task_create = task_create_fn
         self._task_update = task_update_fn
         self._task_set_parent = task_set_parent_fn
@@ -115,20 +115,13 @@ class TaskNode(node.Node):
     def external_insert_as_child(self, left_sibling_id, parent_node):
         create_params = {'assignee': 'me', 'workspace': self._w_id}
         create_params.update(self.export_attrs)
-        if 'tags' in create_params and not create_params['tags']:
-            create_params.pop('tags')
+        if 'tags' in create_params:
+            old_tags = create_params.pop('tags')
+            create_params['tags'] = sorted(
+                list(self._tag_name_lookup[name] for name in old_tags))
         created_task = self._task_create(params=create_params)
         self.id = created_task['id']  # very important side effect
         self.external_move_to(left_sibling_id, parent_node)
-
-    def safe_add_tag(self, tag_name):
-        if tag_name in self.tag_dict:
-            tag_id = self.tag_dict[tag_name]
-        else:
-            tag_id = self._tag_create_in_workspace(
-                self._w_id, params={'name': tag_name})['id']
-            self.tag_dict[tag_name] = tag_id
-        self._task_add_tag(self.id, params={'tag': tag_id})
 
     def external_update(self, other_node):
         parameters = {k: v for k, v in other_node.export_attrs.items()
@@ -137,12 +130,13 @@ class TaskNode(node.Node):
             other_tags = parameters.pop('tags')
             self_tags = getattr(self, 'tags', set())
             add_tags = other_tags.difference(self_tags)
-            for t in add_tags:
-                self.safe_add_tag(t)
+            for name in add_tags:
+                self._task_add_tag(
+                    self.id, params={'tag': self._tag_name_lookup[name]})
             remove_tags = self_tags.difference(other_tags)
-            for t in remove_tags:
-                self._task_remove_tag(self.id,
-                                      params={'tag': self.tag_dict[t]})
+            for name in remove_tags:
+                self._task_remove_tag(
+                    self.id, params={'tag': self._tag_name_lookup[name]})
         if parameters:
             self._task_update(self.id, params=parameters)
         if self.project_id:
@@ -174,6 +168,30 @@ class TaskNode(node.Node):
         self._task_delete(self.id)
         if self.project_id:
             self._project_delete(self.project_id)
+
+
+class TagNameLookup(collections.Mapping):
+
+    def __init__(self, workspace_id, tag_create_in_workspace_fn,
+                 *args, **kwargs):
+        self._store = dict(*args, **kwargs)
+        self._w_id = workspace_id
+        self._tag_create_in_workspace = tag_create_in_workspace_fn
+
+    def __getitem__(self, name):
+        if name in self._store:
+            value = self._store[name]
+        else:
+            value = self._tag_create_in_workspace(
+                self._w_id, params={'name': name})['id']
+            self._store[name] = value
+        return value
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
 
 
 class Source(source.Source):
@@ -272,6 +290,8 @@ class Source(source.Source):
             self._task_delete = lib.make_wrapped_fn(
                 'Task Delete:', self._task_delete)
         self._verbose = verbose
+        self._tag_name_lookup = TagNameLookup(
+            self._w_id, self._tag_create_in_workspace)
 
     @classmethod
     def from_client(cls, asana_client, verbose=False):
@@ -308,7 +328,7 @@ class Source(source.Source):
         return TaskNode.from_dict(
             info_dict, self._w_id, self._project_create_in_workspace,
             self._project_update, self._project_delete,
-            self._tag_create_in_workspace, self._task_create,
+            self._tag_name_lookup, self._task_create,
             self._task_update, self._task_set_parent,
             self._task_add_project, self._task_remove_project,
             self._task_add_tag, self._task_remove_tag, self._task_delete)
@@ -326,6 +346,9 @@ class Source(source.Source):
             tag_id = tag['id']
             tag_name = tag['name']
             tag_cache[tag_id] = tag_name
+        self._tag_name_lookup = TagNameLookup(
+            self._w_id, self._tag_create_in_workspace,
+            {v: k for k, v in tag_cache.items()})
 
         # now the tasks, via depth-first-search
 
@@ -448,8 +471,7 @@ class DryRunSource(Source):
                 lib.noop,
                 lib.noop,
                 asana_client.tags.find_by_workspace,
-                lib.make_counting_fn(lambda i: {
-                    'id': 'NEW TAG {}'.format(i)}),
+                lib.make_counting_fn(lambda i: {'id': i}),
                 asana_client.tasks.find_all,
                 asana_client.tasks.subtasks,
                 lib.make_counting_fn(lambda i: {
