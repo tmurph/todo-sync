@@ -1,2 +1,2 @@
 asana==0.6.2
-pexpect==4.2.1
+pexpect>=4.3
