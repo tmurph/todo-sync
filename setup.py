@@ -8,7 +8,7 @@ def readme():
 
 tools.setup(
     name='todo_sync',
-    version='0.3.1',
+    version='0.3.2-alpha',
     description='Synchronize todo lists, supports Emacs Org Mode and Asana.',
     long_description=readme(),
     url='https://github.com/tmurph/todo-sync',
@@ -20,11 +20,12 @@ tools.setup(
     install_requires=[
         'asana', 'pexpect>=4.3'
     ],
-    python_requires='>=3, <3.7',
+    python_requires='>=3',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Utilities',
     ],
     include_package_data=True,

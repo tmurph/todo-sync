@@ -1,4 +1,5 @@
 import collections
+from functools import wraps
 
 import todo_sync.node as node
 import todo_sync.source as source
@@ -7,6 +8,32 @@ import todo_sync.helpers as lib
 
 DEFAULT_PROJECT_NAME = 'Default Project from Todo-Sync'
 DEFAULT_TASK_NAME = 'Default Task from Todo-Sync'
+
+
+def wrap_asana_page_iterator(fn):
+    """Catch RuntimeErrors raised by PEP 479 violations.
+
+asana.PageIterator.items() raises a StopIteration error to signal that
+the generator is finished.  This is considered harmful as of PEP 479,
+and as of Python 3.7 these StopIteration errors are converted to
+RuntimeErrors.
+
+This non-compliant .items method must be wrapped in every API call that
+returns multiple items, a/k/a pretty much every API call we use.
+
+    """
+    # fn is expected to return an iterator, so we're going to return a
+    # function that also returns an iterator, while watching for and
+    # swallowing RuntimeErrors that are raised by StopIteration errors.
+    @wraps(fn)
+    def wrapped_fn(*args, **kwargs):
+        try:
+            for item in fn(*args, **kwargs):
+                yield item
+        except RuntimeError as err:
+            if not isinstance(err.__cause__, StopIteration):
+                raise
+    return wrapped_fn
 
 
 class RootNode(node.RootNode):
@@ -219,12 +246,13 @@ class Source(source.Source):
                  task_delete_fn,
                  verbose=False):
         self._w_id = default_workspace_id
-        self._project_find_by_workspace = project_find_by_workspace_fn
+        self._project_find_by_workspace = wrap_asana_page_iterator(
+            project_find_by_workspace_fn)
         if verbose:
             self._project_find_by_workspace = lib.make_wrapped_fn(
                 'Project Find By Workspace:',
                 self._project_find_by_workspace)
-        self._project_tasks = project_tasks_fn
+        self._project_tasks = wrap_asana_page_iterator(project_tasks_fn)
         if verbose:
             self._project_tasks = lib.make_wrapped_fn(
                 'Project Tasks:', self._project_tasks)
@@ -241,7 +269,8 @@ class Source(source.Source):
         if verbose:
             self._project_delete = lib.make_wrapped_fn(
                 'Project Delete:', self._project_delete)
-        self._tag_find_by_workspace = tag_find_by_workspace_fn
+        self._tag_find_by_workspace = wrap_asana_page_iterator(
+            tag_find_by_workspace_fn)
         if verbose:
             self._tag_find_by_workspace = lib.make_wrapped_fn(
                 'Tag Find by Workspace:', self._tag_find_by_workspace)
@@ -249,11 +278,11 @@ class Source(source.Source):
         if verbose:
             self._tag_create_in_workspace = lib.make_wrapped_fn(
                 'Tag Create In Workspace:', self._tag_create_in_workspace)
-        self._task_find_all = task_find_all_fn
+        self._task_find_all = wrap_asana_page_iterator(task_find_all_fn)
         if verbose:
             self._task_find_all = lib.make_wrapped_fn(
                 'Task Find All:', self._task_find_all)
-        self._task_subtasks = task_subtasks_fn
+        self._task_subtasks = wrap_asana_page_iterator(task_subtasks_fn)
         if verbose:
             self._task_subtasks = lib.make_wrapped_fn(
                 'Task Subtasks:', self._task_subtasks)
