@@ -1,4 +1,4 @@
-;;; ts-org-interaction --- helper library for todo-sync
+;;; ts-org-interaction --- helper library for todo-sync  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;; An API for manipulating Org tasks.
